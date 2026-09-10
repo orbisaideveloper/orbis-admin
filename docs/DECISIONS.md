@@ -74,7 +74,7 @@ Completion claims follow an Always Verify rule: edits alone are not evidence of 
 
 New pages, components, and newly introduced or materially changed production behavior target 100% test coverage for the affected new code. A lower legacy/global repository threshold does not lower this standard. Any exception must be narrow and explicit in the pull request.
 
-Long-running Termux verification, audit, migration, deployment-validation, and governance commands preserve timestamped reports in the Android Downloads folder.
+Report-worthy Termux setup, verification, audit, migration, deployment-validation, governance, and diagnostic commands preserve timestamped reports in the Android Downloads folder.
 
 ## ADR-009 — Sonar analysis is PR-centered
 
@@ -95,6 +95,20 @@ Once Render preview infrastructure is configured, application pull requests are 
 Preview environments must not receive production-destructive credentials or production write access by default.
 
 Production deployment remains an explicit/manual action after an approved merge unless a later accepted architecture decision deliberately changes that behavior.
+
+## ADR-011 — Shared Termux toolchain with Ubuntu for Linux-only tools
+
+**Status:** Accepted
+
+ORBIS repositories share one Android Termux user environment for common command-line tooling. A repository switch does not justify reinstalling Git, GitHub CLI, Node/npm, Python, or another working shared tool.
+
+Before installing or upgrading tooling, inspect whether a usable copy already exists in native Termux and, when relevant, inside the Ubuntu `proot-distro` environment. Reuse an existing working installation unless a specific incompatibility or version requirement justifies a change.
+
+Ubuntu/proot is the standard execution environment for binaries and developer tools that require a conventional Linux/glibc userspace or otherwise fail under native Android Termux. On the current Android ARM64 workflow, SonarQube CLI belongs in Ubuntu/proot rather than native Termux. Prisma engine tooling, if introduced here, must likewise avoid native Termux and use Ubuntu/proot or an approved raw-SQL/provider workflow.
+
+Shared CLI installation or authentication does not make project configuration global. ORBIS Admin retains its own repository files, Sonar project key/configuration, GitHub repository secrets, Render service, Supabase project/database, environment values, and deployment targets. Other ORBIS projects must not be modified as a side effect of ORBIS Admin setup.
+
+For ORBIS Admin operational work, verify the working repo is `~/orbis-admin` and the GitHub target is `orbisaideveloper/orbis-admin` before mutating project-level state.
 
 ## Future decisions to formalize
 
