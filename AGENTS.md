@@ -43,6 +43,25 @@ It is not a monolithic application database for all ORBIS products.
 - Merge only after required checks and review are satisfactory.
 - Keep commits coherent and descriptive.
 - Avoid unrelated refactors in a focused change.
+- Protect `main` with repository rules that require a pull request and block force-pushes and branch deletion.
+- Add required CI/quality/preview status checks only after those checks exist and are stable, so governance never references a permanently missing check.
+
+## Verification model
+
+- During normal development, run only checks related to the changed area.
+- Do not run unrelated whole-repository suites for every small edit.
+- A stronger final certification is reserved for work that is explicitly declared finished and ready for GitHub/production.
+- Required GitHub checks should progressively include code quality, tests, security and preview/deployment validation as the repository matures.
+- SonarQube Cloud/SonarCloud should be used as a pull-request quality gate once configured; workflow triggers determine when scans run.
+
+## Operational execution and reporting
+
+- Long-running or multi-step verification commands must keep the interactive shell usable whenever practical.
+- Every long-running verification, audit, migration, deployment validation, or repository-governance command must write a timestamped report to the Android Downloads folder when executed from Termux.
+- Preferred Termux report location: `$HOME/storage/downloads/` (after Termux storage access has been granted).
+- Reports should include repository, branch, HEAD, command purpose, start/end time where practical, exit status, and concise PASS/FAIL findings.
+- If a long-running command fails, preserve the report and stop before destructive recovery actions.
+- Never hide failures by resetting, force-pushing, deleting, or rewriting history unless the user explicitly authorizes the exact recovery action.
 
 ## Source-first behavior
 
@@ -93,4 +112,5 @@ A change is not complete merely because code compiles. Completion should include
 - updated documentation for durable decisions,
 - no committed secrets,
 - a reviewable PR with clear scope,
-- successful required CI/preview checks.
+- successful required CI/preview checks,
+- a preserved timestamped Downloads report for any long-running local verification or audit.
