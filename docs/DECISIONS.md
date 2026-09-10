@@ -46,21 +46,55 @@ Sensitive administrative actions should produce an audit record that identifies 
 
 Audit records must not contain secrets.
 
-## ADR-006 — PR-first delivery model
+## ADR-006 — PR-first, manually accepted delivery model
 
 **Status:** Accepted
 
 Normal changes follow:
 
-`branch -> pull request -> preview / targeted verification -> review -> merge to main -> production deployment`
+`branch -> pull request -> preview / targeted verification -> review -> manual acceptance -> merge to main -> explicit production deployment`
 
-Direct development on `main` is not the intended workflow. GitHub rulesets and required checks should enforce this once configured.
+Direct development on `main` is not the intended workflow. `main` is protected by repository rules requiring a pull request, requiring review-thread resolution, and blocking force-pushes and deletion.
+
+Auto-merge is not the default acceptance path. A merge is an explicit administrative decision after the change and required evidence are satisfactory.
 
 ## ADR-007 — ORBIS Admin remains independently deployable
 
 **Status:** Accepted
 
 ORBIS Admin is deployed independently from Foundation, Game, and future products. A control-plane deployment or outage should not automatically take down unrelated product runtimes.
+
+## ADR-008 — Verification and coverage policy
+
+**Status:** Accepted
+
+Normal development uses targeted verification for the changed area. Stronger final certification is reserved for work explicitly declared finished and ready for GitHub/production.
+
+Completion claims follow an Always Verify rule: edits alone are not evidence of completion.
+
+New pages, components, and newly introduced or materially changed production behavior target 100% test coverage for the affected new code. A lower legacy/global repository threshold does not lower this standard. Any exception must be narrow and explicit in the pull request.
+
+Long-running Termux verification, audit, migration, deployment-validation, and governance commands preserve timestamped reports in the Android Downloads folder.
+
+## ADR-009 — Sonar analysis is PR-centered
+
+**Status:** Accepted
+
+Once SonarQube Cloud/SonarCloud is configured, pull requests are the primary quality-analysis surface and changed/new code follows a no-new-issues quality policy.
+
+Arbitrary branch pushes do not need to trigger Sonar analysis merely because they exist. Main/release analysis cadence is configured separately.
+
+A Sonar status check is added to the main-branch ruleset only after its exact GitHub check name exists reliably on pull requests.
+
+## ADR-010 — Preview before merge; production remains explicit
+
+**Status:** Accepted
+
+Once Render preview infrastructure is configured, application pull requests are reviewed through a PR preview before merge.
+
+Preview environments must not receive production-destructive credentials or production write access by default.
+
+Production deployment remains an explicit/manual action after an approved merge unless a later accepted architecture decision deliberately changes that behavior.
 
 ## Future decisions to formalize
 
