@@ -8,7 +8,7 @@ ORBIS Admin starts strict rather than tightening quality after technical debt al
 
 ## Pull-request quality gate
 
-For governance/documentation-only changes, the PR workflow validates required repository policy files and rejects tracked sensitive-looking files.
+For governance/documentation-only changes, the PR workflow validates required repository policy files, validates the Sonar project-isolation contract, and rejects tracked sensitive-looking files.
 
 As soon as application code exists, the full PR gate becomes mandatory. The application-code contract requires:
 
@@ -26,7 +26,14 @@ As soon as application code exists, the full PR gate becomes mandatory. The appl
 
 ## SonarQube Cloud / SonarCloud policy
 
-The project should be configured before the first application-code PR is accepted.
+ORBIS Admin now has an external SonarQube Cloud project and repository secret configured. The verified project identity is:
+
+- project key: `orbisaideveloper_orbis-admin`
+- organization: `orbis`
+- project name: `orbis-admin`
+- GitHub repository secret name: `SONAR_TOKEN`
+
+The repository contains `sonar-project.properties` with this exact project identity. CI validates the identity before any scan so ORBIS Admin cannot accidentally analyze Foundation, ORBIS, or another Sonar project.
 
 The intended policy is:
 
@@ -34,10 +41,13 @@ The intended policy is:
 - no unresolved new issues on changed/new code,
 - coverage imported from `coverage/lcov.info`,
 - quality gate must pass before merge,
+- small changes must not bypass coverage/duplication quality-gate conditions,
 - avoid unnecessary scans on arbitrary branch pushes when quota conservation matters,
 - add the stable GitHub Sonar/check context to the `Protect main` ruleset only after the check has been observed reliably.
 
-`SONAR_TOKEN` must be stored as a GitHub Actions secret. It must never be committed to the repository.
+`SONAR_TOKEN` must remain stored as a GitHub Actions secret. It must never be committed to the repository, copied into reports, or written to shell-history/config files as plain text.
+
+The repository is still governance/documentation-only, so the workflow deliberately does not perform a Sonar analysis yet. The first application-code PR automatically activates token validation, coverage generation/import, the Sonar scan, and waiting for the Sonar quality-gate result.
 
 ## Coverage policy
 
