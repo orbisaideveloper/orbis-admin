@@ -9,9 +9,10 @@ ORBIS Admin is a control-plane repository. Changes can affect identity, authoriz
 3. Make the smallest coherent change that solves the task.
 4. Run targeted verification for the changed area.
 5. Push the branch and open a pull request.
-6. Review the PR preview, checks, and diff.
-7. Merge only when required checks are green and the change is understood.
-8. Production deployment follows the approved merge path.
+6. Review the PR preview, checks, diff, and risk notes.
+7. Resolve review conversations.
+8. Merge manually only when required checks are green and the change is understood.
+9. Production deployment follows the approved merge path and remains explicit/manual unless a later accepted decision changes it.
 
 Do not use `main` as the normal development branch.
 
@@ -34,6 +35,7 @@ Every PR should explain:
 - which subsystem is affected,
 - what was verified,
 - whether database, auth, permission, deployment, or secret handling changed,
+- whether Sonar/CI/preview checks are expected,
 - any follow-up work that remains.
 
 Large changes should be split when practical so architecture, schema, API, and UI can be reviewed clearly.
@@ -42,7 +44,29 @@ Large changes should be split when practical so architecture, schema, API, and U
 
 During normal development, run targeted checks for the affected area rather than unrelated full-repository verification on every small change.
 
-Before a production-critical release, required repository checks should provide stronger certification appropriate to the maturity of this project. The exact CI gates will evolve as implementation is added and should be enforced by GitHub rules once stable.
+Use an **Always Verify** mindset: do not report completion from edits alone. Verify the current branch/HEAD, diff, relevant tests/checks, and any deployment or database state affected by the change.
+
+New pages, components, and newly introduced or materially changed production behavior should target 100% test coverage for the affected new code. A lower global/legacy repository threshold does not reduce this standard. Any justified exception must be narrow and explicitly documented in the PR.
+
+Before a production-critical release, required repository checks should provide stronger certification appropriate to the maturity of this project. Required check names must only be added to GitHub rules after those checks exist reliably.
+
+## SonarQube Cloud / SonarCloud
+
+Once configured:
+
+- use Sonar analysis primarily on pull requests,
+- require the configured quality gate to pass before merge,
+- enforce a no-new-issues policy on changed/new code,
+- avoid unnecessary scans on arbitrary branch pushes when conserving analysis quota matters,
+- configure main/release scan cadence separately.
+
+## Preview and deployment
+
+Once Render preview infrastructure exists, application PRs should receive a review preview before merge.
+
+Preview environments must not receive production-destructive credentials or production write access by default.
+
+Production deploys should remain explicit/manual after an approved merge unless a later architecture decision deliberately changes that policy.
 
 ## Security rules
 
@@ -73,3 +97,9 @@ ORBIS product databases remain independent. Do not create tight cross-database c
 ## Administrative controls
 
 Actions that can affect production, user access, deployments, infrastructure configuration, or destructive data operations require stronger authorization than read-only dashboards. Such controls should be auditable and designed with least privilege.
+
+## Termux reporting
+
+Long-running verification, audit, migration, deployment validation, or governance commands executed from Termux must preserve a timestamped report in `$HOME/storage/downloads/`.
+
+The report should record the repository, branch, HEAD, purpose, result, and useful failure context. If a command fails, preserve the report and stop before destructive recovery actions.
