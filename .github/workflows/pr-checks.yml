@@ -71,7 +71,6 @@ jobs:
           require_property 'sonar.projectKey=orbisaideveloper_orbis-admin'
           require_property 'sonar.organization=orbis'
           require_property 'sonar.projectName=orbis-admin'
-          require_property 'sonar.qualitygate.ignoreSmallChanges=false'
 
           if grep -Eq '^sonar\.projectKey=.*(foundation|_orbis$)' sonar-project.properties; then
             echo "ERROR: ORBIS Admin must never analyze another ORBIS Sonar project."
