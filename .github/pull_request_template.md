@@ -9,7 +9,22 @@ Describe what changed and why.
 
 ## Verification
 
-Describe the targeted checks, tests, preview validation, or manual verification performed.
+Describe the targeted checks, tests, preview validation, manual verification, and any relevant branch/HEAD evidence.
+
+- [ ] Current branch/HEAD and diff reviewed.
+- [ ] Targeted tests/checks for the changed area passed.
+- [ ] Required GitHub checks passed, if configured.
+- [ ] PR preview reviewed, if applicable/configured.
+- [ ] Long-running Termux verification/audit produced a timestamped Downloads report, if applicable.
+
+## Quality
+
+- [ ] New pages/components or newly introduced/materially changed production code have tests targeting 100% coverage for the affected new code, or a narrow exception is documented below.
+- [ ] SonarQube Cloud/SonarCloud reports no new issues on changed/new code, if configured for this PR.
+
+Coverage/Sonar exception (if any):
+
+`None`
 
 ## Risk review
 
@@ -19,10 +34,13 @@ Describe the targeted checks, tests, preview validation, or manual verification 
 - [ ] Database/migration impact was reviewed if relevant.
 - [ ] Deployment/production impact was reviewed if relevant.
 - [ ] Durable architecture decisions/documentation were updated if needed.
+- [ ] Review conversations are resolved before merge.
 
 ## Deployment
 
 Describe whether this PR changes staging, production, Render, GitHub Actions, environment variables, or external integrations.
+
+Production deployment should remain explicit/manual unless an accepted architecture decision says otherwise.
 
 ## Follow-up
 
