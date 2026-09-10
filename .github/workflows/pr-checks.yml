@@ -1,0 +1,230 @@
+name: ORBIS Admin PR Quality Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbis-admin-pr-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Build, Test & Safety Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Repository Governance Guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            README.md
+            AGENTS.md
+            CONTRIBUTING.md
+            docs/ARCHITECTURE.md
+            docs/DECISIONS.md
+            docs/QUALITY-GATES.md
+            .github/copilot-instructions.md
+            .github/pull_request_template.md
+            .github/workflows/pr-checks.yml
+          )
+
+          for file in "${required_files[@]}"; do
+            if [[ ! -s "$file" ]]; then
+              echo "ERROR: required governance file missing or empty: $file"
+              exit 1
+            fi
+          done
+
+          echo "Governance baseline: PASS"
+
+      - name: Tracked Sensitive File Guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          blocked="$(git ls-files | grep -E '(^|/)(\.env($|\.)|.*\.(pem|p12|pfx|key)$)' || true)"
+          allowed="$(printf '%s\n' "$blocked" | grep -E '(^|/)\.env\.(example|sample|template)$' || true)"
+
+          if [[ -n "$allowed" ]]; then
+            blocked="$(comm -23 <(printf '%s\n' "$blocked" | sort) <(printf '%s\n' "$allowed" | sort) || true)"
+          fi
+
+          if [[ -n "$blocked" ]]; then
+            echo "ERROR: tracked sensitive-looking files are not allowed:"
+            printf '%s\n' "$blocked"
+            exit 1
+          fi
+
+          echo "Tracked sensitive file guard: PASS"
+
+      - name: Detect Application Code
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if find . -type f \
+            \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.mjs' -o -name '*.cjs' \) \
+            -not -path './.git/*' \
+            -not -path './.github/*' \
+            -not -path './node_modules/*' \
+            -print -quit | grep -q .; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            echo "Application code detected. Full quality gate is required."
+          else
+            echo "has_code=false" >> "$GITHUB_OUTPUT"
+            echo "No application code detected. Governance-only gate applies."
+          fi
+
+      - name: Enforce First-Code Quality Contract
+        if: steps.detect.outputs.has_code == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for file in package.json package-lock.json sonar-project.properties; do
+            if [[ ! -s "$file" ]]; then
+              echo "ERROR: application code exists but required quality file is missing: $file"
+              exit 1
+            fi
+          done
+
+          node <<'NODE'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const required = [
+            'lint',
+            'type-check',
+            'test:coverage',
+            'check:deadcode:ci',
+            'check:duplicates:ci',
+            'build'
+          ];
+
+          const missing = required.filter((name) => !pkg.scripts?.[name]);
+          if (missing.length) {
+            console.error(`ERROR: missing required package scripts: ${missing.join(', ')}`);
+            process.exit(1);
+          }
+
+          console.log('First-code quality contract: PASS');
+          NODE
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.has_code == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install Dependencies
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm ci
+
+      - name: Lint — Zero Warnings
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run lint
+
+      - name: TypeScript — Zero Type Errors
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run type-check
+
+      - name: Tests and Coverage
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run test:coverage
+
+      - name: Coverage — Require 100 Percent
+        if: steps.detect.outputs.has_code == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! -s coverage/coverage-summary.json ]]; then
+            echo "ERROR: coverage/coverage-summary.json is required."
+            exit 1
+          fi
+
+          if [[ ! -s coverage/lcov.info ]]; then
+            echo "ERROR: coverage/lcov.info is required for SonarQube Cloud."
+            exit 1
+          fi
+
+          node <<'NODE'
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const total = summary.total;
+          const metrics = ['lines', 'statements', 'functions', 'branches'];
+          const failures = metrics.filter((metric) => Number(total?.[metric]?.pct) !== 100);
+
+          if (failures.length) {
+            for (const metric of failures) {
+              console.error(`ERROR: ${metric} coverage is ${total?.[metric]?.pct ?? 'missing'}%; required: 100%`);
+            }
+            process.exit(1);
+          }
+
+          console.log('Coverage gate: PASS — 100% lines/statements/functions/branches');
+          NODE
+
+      - name: Knip Dead Code Guard
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run check:deadcode:ci
+
+      - name: JSCPD Duplication Guard — Zero Duplication
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run check:duplicates:ci
+
+      - name: Dependency Audit — No High or Critical Vulnerabilities
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm audit --audit-level=high
+
+      - name: Production Build
+        if: steps.detect.outputs.has_code == 'true'
+        run: npm run build
+
+      - name: Require SonarQube Cloud Token
+        if: steps.detect.outputs.has_code == 'true'
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SONAR_TOKEN:-}" ]]; then
+            echo "ERROR: SONAR_TOKEN is required before application code can pass this PR gate."
+            exit 1
+          fi
+          echo "SonarQube Cloud token is configured."
+
+      - name: SonarQube Cloud — Scan and Wait for Quality Gate
+        if: steps.detect.outputs.has_code == 'true'
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
+
+      - name: Governance-Only Result
+        if: steps.detect.outputs.has_code == 'false'
+        run: |
+          echo "ORBIS Admin currently contains governance/documentation only."
+          echo "Repository and sensitive-file guards passed."
+          echo "The first application-code PR will automatically activate the full quality gate."
