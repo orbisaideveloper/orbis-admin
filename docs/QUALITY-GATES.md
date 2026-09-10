@@ -41,13 +41,13 @@ The intended policy is:
 - no unresolved new issues on changed/new code,
 - coverage imported from `coverage/lcov.info`,
 - quality gate must pass before merge,
-- small changes must not bypass coverage/duplication quality-gate conditions,
-- avoid unnecessary scans on arbitrary branch pushes when quota conservation matters,
-- add the stable GitHub Sonar/check context to the `Protect main` ruleset only after the check has been observed reliably.
+- avoid unnecessary scans on arbitrary branch pushes when quota conservation matters.
 
 `SONAR_TOKEN` must remain stored as a GitHub Actions secret. It must never be committed to the repository, copied into reports, or written to shell-history/config files as plain text.
 
 The repository is still governance/documentation-only, so the workflow deliberately does not perform a Sonar analysis yet. The first application-code PR automatically activates token validation, coverage generation/import, the Sonar scan, and waiting for the Sonar quality-gate result.
+
+Any project-level Sonar Quality Gate settings that are not analysis properties must be configured and verified in SonarQube Cloud itself before they are claimed as enforced. Do not encode unverified server-side Quality Gate behavior as a repository analysis property.
 
 ## Coverage policy
 
@@ -75,17 +75,13 @@ Dependency audit failures at high or critical severity block the PR. Additional 
 
 ## GitHub ruleset integration
 
-Do not add a required status check to the `Protect main` ruleset before its exact GitHub check name exists and has completed successfully on a pull request.
+The stable GitHub Actions context `Build, Test & Safety Audit` has been observed successfully on PR #2 and is now required by the active `Protect main` ruleset with strict branch-up-to-date enforcement.
 
-After this workflow is established and stable, the first intended required GitHub Actions context is:
-
-`Build, Test & Safety Audit`
-
-Sonar and Render preview checks should be added separately only after their exact, stable check names are observed.
+Sonar and Render preview checks should be added separately only after their exact, stable check names are observed on application-code pull requests.
 
 ## Render preview
 
-Render PR Preview is a deployment/review gate, not a replacement for code-quality gates. Once configured, application PRs should be reviewed in preview before merge. Preview credentials must not provide destructive production access by default.
+Render PR Preview is a deployment/review gate, not a replacement for code-quality gates. ORBIS Admin does not yet contain deployable application code, so a Render service/preview is intentionally deferred until the first application scaffold exists. When configured, preview credentials must not provide destructive production access by default.
 
 ## Local development
 
