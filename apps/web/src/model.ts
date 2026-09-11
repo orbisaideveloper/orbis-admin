@@ -26,151 +26,82 @@ export type ProjectSummary = {
   renderUrl?: string
 }
 
-export const commandAreas: CommandArea[] = [
-  {
-    id: 'projects',
-    title: 'Projects',
-    eyebrow: 'Registry',
-    summary: 'All ORBIS products, health and operational state.',
-    metric: '3 tracked',
-    tone: 'healthy',
-  },
-  {
-    id: 'modules',
-    title: 'Modules / Models',
-    eyebrow: 'Inventory',
-    summary: 'Cross-project modules and current/published state.',
-    metric: 'Demo view',
-    tone: 'healthy',
-  },
-  {
-    id: 'users',
-    title: 'Central Users',
-    eyebrow: 'Identity',
-    summary: 'Permanent ORBIS identity registry — next major phase.',
-    metric: 'Planned',
-    tone: 'planned',
-  },
-  {
-    id: 'github',
-    title: 'GitHub Actions',
-    eyebrow: 'Quality gate',
-    summary: 'Required checks and workflow health across projects.',
-    metric: 'Ready',
-    tone: 'healthy',
-  },
-  {
-    id: 'sonar',
-    title: 'Sonar Quality',
-    eyebrow: 'Code health',
-    summary: 'Quality Gate, coverage, duplication and issue signals.',
-    metric: 'First scan pending',
-    tone: 'attention',
-  },
-  {
-    id: 'render',
-    title: 'Render / Deployments',
-    eyebrow: 'Runtime',
-    summary: 'Service and deployment visibility for registered apps.',
-    metric: 'Setup later',
-    tone: 'planned',
-  },
-  {
-    id: 'environments',
-    title: 'Environments',
-    eyebrow: 'Delivery',
-    summary: 'Preview, staging and production state.',
-    metric: '3 lanes',
-    tone: 'healthy',
-  },
-  {
-    id: 'review',
-    title: 'Review / Publish Queue',
-    eyebrow: 'Control',
-    summary: 'Future owner approvals for releases and publish actions.',
-    metric: 'Read-only V1',
-    tone: 'planned',
-  },
-  {
-    id: 'alerts',
-    title: 'Alerts / Incidents',
-    eyebrow: 'Attention',
-    summary: 'Failed, degraded or blocked operational signals.',
-    metric: '1 attention',
-    tone: 'attention',
-  },
-  {
-    id: 'health',
-    title: 'API / Service Health',
-    eyebrow: 'Availability',
-    summary: 'Registered health endpoints and service summaries.',
-    metric: '/health ready',
-    tone: 'healthy',
-  },
-  {
-    id: 'activity',
-    title: 'Activity / Audit',
-    eyebrow: 'Traceability',
-    summary: 'Future administrative history and audit trail.',
-    metric: 'Visual shell',
-    tone: 'planned',
-  },
-  {
-    id: 'settings',
-    title: 'Settings / Integrations',
-    eyebrow: 'Configuration',
-    summary: 'Registry and provider integration configuration shell.',
-    metric: 'Safe V1',
-    tone: 'healthy',
-  },
-]
+const commandAreaSpecs: Record<string, string> = {
+  projects: 'Projects\tRegistry\tAll ORBIS products, health and operational state.\t3 tracked\thealthy',
+  modules: 'Modules / Models\tInventory\tCross-project modules and current/published state.\tDemo view\thealthy',
+  users: 'Central Users\tIdentity\tPermanent ORBIS identity registry — next major phase.\tPlanned\tplanned',
+  github: 'GitHub Actions\tQuality gate\tRequired checks and workflow health across projects.\tReady\thealthy',
+  sonar: 'Sonar Quality\tCode health\tQuality Gate, coverage, duplication and issue signals.\tFirst scan pending\tattention',
+  render: 'Render / Deployments\tRuntime\tService and deployment visibility for registered apps.\tSetup later\tplanned',
+  environments: 'Environments\tDelivery\tPreview, staging and production state.\t3 lanes\thealthy',
+  review: 'Review / Publish Queue\tControl\tFuture owner approvals for releases and publish actions.\tRead-only V1\tplanned',
+  alerts: 'Alerts / Incidents\tAttention\tFailed, degraded or blocked operational signals.\t1 attention\tattention',
+  health: 'API / Service Health\tAvailability\tRegistered health endpoints and service summaries.\t/health ready\thealthy',
+  activity: 'Activity / Audit\tTraceability\tFuture administrative history and audit trail.\tVisual shell\tplanned',
+  settings: 'Settings / Integrations\tConfiguration\tRegistry and provider integration configuration shell.\tSafe V1\thealthy',
+}
 
-export const projects: ProjectSummary[] = [
-  {
-    id: 'orbis-admin',
-    name: 'ORBIS Admin',
-    kind: 'Control Plane',
-    repository: 'orbisaideveloper/orbis-admin',
-    environment: 'Development',
-    version: 'Step 4',
-    publishedVersion: 'Not deployed',
-    quality: 'healthy',
-    health: 'healthy',
-    modules: 1,
-    users: 'Owner only',
-    githubUrl: 'https://github.com/orbisaideveloper/orbis-admin',
-  },
-  {
-    id: 'orbis-foundation',
-    name: 'ORBIS Foundation',
-    kind: 'Product Platform',
-    repository: 'orbisaideveloper/orbis-foundation',
-    environment: 'Existing product',
-    version: 'External',
-    publishedVersion: 'External',
-    quality: 'attention',
-    health: 'healthy',
-    modules: 0,
-    users: 'External',
-  },
-  {
-    id: 'orbis-game',
-    name: 'ORBIS Game',
-    kind: 'Future Product',
-    repository: 'Not registered',
-    environment: 'Planned',
-    version: 'Planned',
-    publishedVersion: 'Planned',
-    quality: 'planned',
-    health: 'planned',
-    modules: 0,
-    users: 'Not connected',
-  },
-]
+const commandAreaFromSpec = ([id, spec]: [string, string]): CommandArea => {
+  const [title, eyebrow, summary, metric, tone] = spec.split('\t')
 
-export const findCommandArea = (id: string) => commandAreas.find((area) => area.id === id)
+  return {
+    id,
+    title,
+    eyebrow,
+    summary,
+    metric,
+    tone: tone as StatusTone,
+  }
+}
 
-export const findProject = (id: string) => projects.find((project) => project.id === id)
+export const commandAreas: CommandArea[] =
+  Object.entries(commandAreaSpecs).map(commandAreaFromSpec)
+
+const projectSpecs: Record<string, string> = {
+  'orbis-admin': 'ORBIS Admin\tControl Plane\torbisaideveloper/orbis-admin\tDevelopment\tStep 4\tNot deployed\thealthy\thealthy\t1\tOwner only\thttps://github.com/orbisaideveloper/orbis-admin',
+  'orbis-foundation': 'ORBIS Foundation\tProduct Platform\torbisaideveloper/orbis-foundation\tExisting product\tExternal\tExternal\tattention\thealthy\t0\tExternal\t',
+  'orbis-game': 'ORBIS Game\tFuture Product\tNot registered\tPlanned\tPlanned\tPlanned\tplanned\tplanned\t0\tNot connected\t',
+}
+
+const projectFromSpec = ([id, spec]: [string, string]): ProjectSummary => {
+  const [
+    name,
+    kind,
+    repository,
+    environment,
+    version,
+    publishedVersion,
+    quality,
+    health,
+    modules,
+    users,
+    githubUrl,
+  ] = spec.split('\t')
+
+  return {
+    id,
+    name,
+    kind,
+    repository,
+    environment,
+    version,
+    publishedVersion,
+    quality: quality as StatusTone,
+    health: health as StatusTone,
+    modules: Number(modules),
+    users,
+    ...(githubUrl ? { githubUrl } : {}),
+  }
+}
+
+export const projects: ProjectSummary[] =
+  Object.entries(projectSpecs).map(projectFromSpec)
+
+export const findCommandArea = (id: string) =>
+  commandAreas.find((area) => area.id === id)
+
+export const findProject = (id: string) =>
+  projects.find((project) => project.id === id)
 
 export const aggregateTone = (tones: StatusTone[]): StatusTone => {
   if (tones.includes('attention')) return 'attention'
