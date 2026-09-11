@@ -1,112 +1,128 @@
-import type { ProjectRegistryResponse } from '@orbis-admin/contracts'
+import type {
+  EnvironmentKind,
+  ProjectLifecycle,
+  ProjectProviderRegistration,
+  ProjectRegistryProject,
+  ProjectRegistryResponse,
+  ProjectSignals,
+  SignalState,
+} from '@orbis-admin/contracts'
+
+type FixtureRow = readonly [
+  id: string,
+  name: string,
+  kind: string,
+  lifecycle: ProjectLifecycle,
+  repository: string | null,
+  environmentKind: EnvironmentKind,
+  environmentLabel: string,
+  userMode: string,
+  userCount: number | null,
+  modules: number | null,
+  providers: ProjectProviderRegistration,
+  signals: ProjectSignals,
+]
+
+const signalSet = (
+  ci: SignalState,
+  quality: SignalState,
+  deployment: SignalState,
+  health: SignalState,
+): ProjectSignals => ({
+  ci,
+  quality,
+  deployment,
+  health,
+})
+
+const toFixtureProject = ([
+  id,
+  name,
+  kind,
+  lifecycle,
+  repository,
+  environmentKind,
+  environmentLabel,
+  userMode,
+  userCount,
+  modules,
+  providers,
+  signals,
+]: FixtureRow): ProjectRegistryProject => ({
+  id,
+  name,
+  kind,
+  lifecycle,
+  repository,
+  environment: {
+    kind: environmentKind,
+    label: environmentLabel,
+  },
+  release: {
+    current: null,
+    published: null,
+  },
+  users: {
+    mode: userMode,
+    count: userCount,
+  },
+  modules,
+  providers,
+  signals,
+})
+
+const fixtureRows: readonly FixtureRow[] = [
+  [
+    'orbis-admin',
+    'ORBIS Admin',
+    'Control Plane',
+    'active',
+    'orbisaideveloper/orbis-admin',
+    'staging',
+    'Staging',
+    'owner-only',
+    null,
+    null,
+    {
+      github: {
+        repositoryFullName: 'orbisaideveloper/orbis-admin',
+        defaultBranch: 'main',
+      },
+    },
+    signalSet('unknown', 'unknown', 'unknown', 'unknown'),
+  ],
+  [
+    'orbis-foundation',
+    'ORBIS Foundation',
+    'Product Platform',
+    'external',
+    'orbisaideveloper/orbis-foundation',
+    'external',
+    'Existing product',
+    'external',
+    42,
+    4,
+    {},
+    signalSet('attention', 'attention', 'unknown', 'healthy'),
+  ],
+  [
+    'orbis-game',
+    'ORBIS Game',
+    'Future Product',
+    'planned',
+    null,
+    'planned',
+    'Planned',
+    'not-connected',
+    null,
+    null,
+    {},
+    signalSet('planned', 'planned', 'planned', 'planned'),
+  ],
+]
 
 export const projectRegistryFixture: ProjectRegistryResponse = {
   schemaVersion: 'v1',
   generatedAt: '2026-09-11T17:30:00.000Z',
-  projects: [
-    {
-      id: 'orbis-admin',
-      name: 'ORBIS Admin',
-      kind: 'Control Plane',
-      lifecycle: 'active',
-      repository: 'orbisaideveloper/orbis-admin',
-      environment: {
-        kind: 'staging',
-        label: 'Staging',
-      },
-      release: {
-        current: null,
-        published: null,
-      },
-      users: {
-        mode: 'owner-only',
-        count: null,
-      },
-      modules: null,
-      providers: {
-        github: {
-          repositoryFullName: 'orbisaideveloper/orbis-admin',
-          defaultBranch: 'main',
-        },
-        render: {
-          serviceId: 'srv-dai144uq1p3s73ajc1ag',
-          serviceName: 'orbis-admin-staging',
-          branch: 'staging',
-          region: 'singapore',
-        },
-        sonar: {
-          projectKey: 'orbisaideveloper_orbis-admin',
-          organization: 'orbis',
-        },
-        health: {
-          path: '/health',
-        },
-      },
-      signals: {
-        ci: 'unknown',
-        quality: 'unknown',
-        deployment: 'unknown',
-        health: 'unknown',
-      },
-    },
-    {
-      id: 'orbis-foundation',
-      name: 'ORBIS Foundation',
-      kind: 'Product Platform',
-      lifecycle: 'external',
-      repository: 'orbisaideveloper/orbis-foundation',
-      environment: {
-        kind: 'external',
-        label: 'Existing product',
-      },
-      release: {
-        current: null,
-        published: null,
-      },
-      users: {
-        mode: 'external',
-        count: 42,
-      },
-      modules: 4,
-      providers: {
-        github: {
-          repositoryFullName: 'orbisaideveloper/orbis-foundation',
-          defaultBranch: 'main',
-        },
-      },
-      signals: {
-        ci: 'attention',
-        quality: 'attention',
-        deployment: 'unknown',
-        health: 'healthy',
-      },
-    },
-    {
-      id: 'orbis-game',
-      name: 'ORBIS Game',
-      kind: 'Future Product',
-      lifecycle: 'planned',
-      repository: null,
-      environment: {
-        kind: 'planned',
-        label: 'Planned',
-      },
-      release: {
-        current: null,
-        published: null,
-      },
-      users: {
-        mode: 'not-connected',
-        count: null,
-      },
-      modules: null,
-      providers: {},
-      signals: {
-        ci: 'planned',
-        quality: 'planned',
-        deployment: 'planned',
-        health: 'planned',
-      },
-    },
-  ],
+  projects: fixtureRows.map(toFixtureProject),
 }
