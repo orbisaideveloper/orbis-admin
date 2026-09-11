@@ -6,7 +6,7 @@ type UnknownRecord = Record<string, unknown>
 
 const asRecord = (value: unknown): UnknownRecord => {
   if (typeof value !== 'object') {
-    throw new Error('Invalid project registry response: expected object')
+    throw new TypeError('Invalid project registry response: expected object')
   }
 
   if (value === null) {
@@ -26,11 +26,11 @@ export const parseProjectRegistryResponse = (
   }
 
   if (typeof record.generatedAt !== 'string') {
-    throw new Error('Invalid project registry response: generatedAt')
+    throw new TypeError('Invalid project registry response: generatedAt')
   }
 
   if (!Array.isArray(record.projects)) {
-    throw new Error('Invalid project registry response: projects')
+    throw new TypeError('Invalid project registry response: projects')
   }
 
   return value as ProjectRegistryResponse
