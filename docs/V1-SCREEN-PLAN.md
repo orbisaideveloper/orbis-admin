@@ -2,7 +2,7 @@
 
 **Status:** Proposed for Step 3 review
 
-Version 1 is the first visual/admin-shell milestone for the future ORBIS Control Center. It is intentionally a safe shell: it proves the navigation, information architecture, project-registry model, visual system, responsive behavior, and health/status patterns before real authentication, databases, customer records, or production-control actions are connected.
+Version 1 is the first visual/admin-shell milestone for the future ORBIS Control Center. It proves the navigation, information architecture, project-registry model, visual system, responsive behavior, and health/status patterns before real authentication, databases, customer records, or production-control actions are connected.
 
 ## V1 user
 
@@ -10,88 +10,134 @@ V1 is designed for the ORBIS owner/admin only. It is **not** a customer-facing d
 
 Customers will later sign in through the ORBIS product they use. Their permanent ORBIS identity will be resolved through the central identity architecture, but they will not use the owner Admin dashboard.
 
-## V1 navigation
+## Core V1 design rule — compact command board
 
-The first shell should expose these primary areas:
+The home screen must avoid becoming a long scrolling dashboard.
 
-1. **Command Center** — overall ecosystem dashboard.
-2. **Projects** — all registered ORBIS products/projects.
-3. **Modules / Models** — module inventory and version/publish state.
-4. **Users** — central ORBIS user/customer registry shell.
-5. **Health & Quality** — CI, Sonar, service/preview/health summaries.
-6. **Activity / Audit** — administrative activity timeline shell.
-7. **Settings** — future Admin/system configuration entry point.
+The first viewport should show roughly 10–12 compact, high-value cards so the owner can understand all important areas at a glance. On mobile, cards should remain compact and responsive; secondary information belongs behind a tap rather than below the home screen.
 
-Only safe/demo/read-only state appears in V1. Real write controls are added only after authorization, audit, integration, and confirmation rules exist.
+The exact card count may change during visual review, but the command-board principle is fixed.
 
-## Screen 1 — Command Center
+## Proposed home cards
 
-This is the home screen and the most important V1 page.
+1. **Projects** — all registered ORBIS products/projects.
+2. **Modules / Models** — cross-project module inventory and current/published state.
+3. **Central Users** — permanent ORBIS identity/customer registry summary.
+4. **GitHub Actions** — cross-project required-check and workflow summary.
+5. **Sonar Quality** — cross-project Sonar project and Quality Gate summary.
+6. **Render / Deployments** — cross-project service/deployment summary.
+7. **Environments** — preview/staging/production overview.
+8. **Review / Publish Queue** — items waiting for review or future publish/release action.
+9. **Alerts / Incidents** — failed, degraded, blocked, or attention-needed items.
+10. **API / Service Health** — registered health endpoint summary.
+11. **Activity / Audit** — recent administrative activity.
+12. **Settings / Integrations** — registry and integration configuration entry point.
 
-It should answer quickly:
+A small top strip may show only the most important whole-system numbers such as total projects, healthy projects, attention required, and central users.
 
-- How many ORBIS projects are registered?
-- How many are healthy, warning, review-needed, or offline?
-- Are any required GitHub/CI/Sonar checks failing?
-- Are any projects waiting for review or publish?
-- How many central ORBIS users/customers exist? (placeholder/demo in V1)
-- What changed most recently?
-- Which project needs attention now?
+## Drill-down navigation
 
-### Proposed blocks
+The navigation hierarchy is:
 
-- top owner/admin header,
-- ecosystem health summary,
-- project status cards,
-- pending review/publish queue,
-- CI/Sonar/Render summary strip,
-- central identity/user summary,
-- recent activity timeline,
-- high-priority alerts.
+```text
+Home Command Center
+  -> category card
+     -> project/item card
+        -> detail view
+```
 
-## Screen 2 — Projects
+Every secondary screen must show:
 
-A registry-driven project list/grid.
+- **Back** — one level up,
+- **Home** — direct return to the Command Center,
+- title/breadcrumb — clear current location.
 
-Each project card should have a consistent summary pattern:
+This lets the owner move step-by-step or jump straight home.
+
+## Projects flow
+
+Tapping **Projects** opens the registry-driven project grid/list.
+
+Each project card should show a compact summary such as:
 
 - product/project name,
-- project type/category,
-- repository,
-- environment summary,
-- current version/commit,
-- published/live version,
+- type/category,
 - health state,
-- quality/check state,
-- modules/models count,
-- customer/user count if available,
+- repository,
+- current commit/version,
+- published/live version,
+- environment state,
+- quality state,
+- module/model count,
+- user/member count when available,
 - integration state.
 
-A new future ORBIS project should be able to appear through registry/configuration instead of requiring a new hard-coded dashboard design.
+Tapping a project opens that project's unified Admin detail page **inside ORBIS Admin**.
 
-V1 uses safe placeholder/demo projects only.
+The project detail is not a blind copy of an old project admin page. It is a standard ORBIS Admin view that brings together the project's approved Admin-facing data.
 
-## Screen 3 — Project Detail
-
-Selecting a project opens a reusable project detail layout.
-
-Tabs/sections may include:
+Proposed project-detail sections/cards:
 
 - Overview,
 - Modules / Models,
 - Versions / Releases,
-- Quality,
-- Deployments,
+- GitHub Actions,
+- Sonar Quality,
+- Render / Deployments,
+- Environments,
 - Users / Memberships,
-- Activity.
+- Health,
+- Activity / Audit.
 
-V1 should visually demonstrate the pattern but not perform real publish/deploy/rollback operations.
+Where appropriate, the detail page also provides explicit provider deep-links such as **Open in GitHub**, **Open in SonarQube Cloud**, and **Open in Render**.
 
-## Screen 4 — Modules / Models
+## Sonar Quality flow
 
-Cross-project module/model inventory.
+Tapping the top-level **Sonar Quality** card opens the ORBIS Sonar overview.
 
-Each row/card should show:
+It should eventually show every registered ORBIS project that has a configured Sonar project identity. It does not automatically assume every GitHub repository already has Sonar configured.
+
+For each connected project, the Admin should show useful summary information such as:
+
+- project name,
+- Sonar project key,
+- Quality Gate state,
+- issue/quality warning summary,
+- coverage/duplication summary where available,
+- last analysis status/time where available.
+
+Tapping a project opens deeper Sonar detail inside ORBIS Admin. A separate **Open in SonarQube Cloud** action opens the original Sonar Cloud project page for full provider-native details.
+
+## GitHub Actions flow
+
+Tapping **GitHub Actions** opens a cross-project CI view for registered repositories.
+
+Per project it may show:
+
+- repository,
+- branch/current commit,
+- required-check state,
+- latest workflow result,
+- blocked/failed/pending status.
+
+Tapping a project opens deeper workflow/check detail inside Admin, with **Open in GitHub** available when full provider details are needed.
+
+## Render / Deployments flow
+
+Tapping **Render / Deployments** opens a cross-project deployment view for registered Render services.
+
+Per project it may show:
+
+- service/environment,
+- current deployed commit/version,
+- deployment/health state,
+- preview/staging/production state.
+
+Tapping a project opens its deployment detail inside Admin, with **Open in Render** available for the original provider page.
+
+## Modules / Models flow
+
+The cross-project module/model view should show compact cards with:
 
 - module/model name,
 - owning project,
@@ -102,13 +148,13 @@ Each row/card should show:
 - quality/health state,
 - last change.
 
-Future high-risk actions such as Publish, Promote, Rollback, or Disable must be permissioned and audited. In V1 they are absent or visibly disabled/demo-only.
+Future high-risk actions such as Publish, Promote, Rollback, or Disable must be permissioned and audited. In V1 they remain absent or visibly disabled/demo-only.
 
-## Screen 5 — Central Users
+## Central Users flow
 
 This page represents the future central ORBIS user/customer registry.
 
-V1 should show the intended information architecture using demo data only:
+V1 shows only safe demo structure:
 
 - ORBIS display ID,
 - customer name,
@@ -119,25 +165,38 @@ V1 should show the intended information architecture using demo data only:
 - created date,
 - last activity summary when available.
 
-The true immutable internal `orbis_user_id` should exist in the later data model even if the UI normally presents a safer human-friendly display ID.
+The later data model must use an immutable internal `orbis_user_id` even if the normal UI shows a safer human-friendly display ID.
 
 V1 must not implement real customer storage or authentication.
 
-## Screen 6 — Health & Quality
+## Copy controls
 
-One cross-project quality/operations screen with status cards for:
+Admin work often needs safe operational data copied into Termux, GitHub, diagnostics, or support notes.
 
-- GitHub Actions,
-- required checks,
-- Sonar Quality Gate,
-- Render/service health,
-- preview/staging/production environment state,
-- API health endpoints,
-- dependency/security warnings when available.
+V1 should establish a consistent copy-button pattern for non-secret values such as:
 
-V1 uses demo/read-only state. Live external integrations come in later focused PRs.
+- repository name,
+- branch,
+- commit SHA,
+- project/module ID,
+- ORBIS display/user ID where authorized,
+- service/deployment ID,
+- Sonar project key,
+- URLs,
+- error/reference IDs,
+- non-secret diagnostic text.
 
-## Screen 7 — Activity / Audit
+Secret values, passwords, access tokens, service-role keys, and credentials must never be rendered as copyable browser values.
+
+## Independent ORBIS Admin infrastructure
+
+ORBIS Admin remains fully independent from every other ORBIS product.
+
+Its future database must be its own database. If Supabase is chosen, it must be a dedicated ORBIS Admin Supabase project/database. Existing product databases must not be reused as the Admin database.
+
+ORBIS Admin must also have its own Render service/deployment and project-specific secrets/configuration. It may observe/control other projects through explicit integrations, but does not share their runtime/database simply to make integration easier.
+
+## Activity / Audit
 
 V1 should establish the visual pattern for a future audit trail.
 
@@ -153,13 +212,15 @@ Each activity item should be able to represent:
 
 V1 uses sample/demo activity only.
 
-## Screen 8 — Settings
+## Settings / Integrations
 
-V1 contains a simple settings shell for future configuration categories such as:
+V1 contains a settings/integrations shell for future configuration categories such as:
 
 - Admin profile/security,
 - project registry,
-- integrations,
+- GitHub integration,
+- Sonar integration/project mapping,
+- Render integration/service mapping,
 - environments,
 - notification preferences,
 - audit/security policy.
@@ -171,27 +232,28 @@ No privileged secret values should be exposed in the browser UI.
 The intended design is a premium high-tech command center:
 
 - deep dark background with bright crystalline surfaces,
-- glass-like cards with strong separation,
+- compact glass-like micro-cards with strong separation,
 - vivid cyan/blue/violet highlights,
 - restrained glow around live/healthy states,
 - amber/red emphasis for attention/failure states,
-- large readable status numbers,
+- readable status numbers,
 - smooth rounded geometry,
-- compact but spacious information hierarchy,
+- glanceable first viewport,
 - responsive mobile-first layout,
+- secondary details behind taps rather than long home-page scrolling,
 - no visual decoration should reduce readability or make dangerous actions ambiguous.
 
-The experience should feel like an operational control room, not a generic admin template.
-
 ## V1 safe-action rule
-
-V1 is visually rich but operationally conservative.
 
 Allowed in the first implementation milestone:
 
 - navigation,
+- Home/Back/breadcrumb behavior,
 - demo/search/filter UI,
-- read-only/demo status cards,
+- compact read-only/demo cards,
+- project/category drill-down,
+- safe demo Copy controls,
+- provider deep-link buttons using demo/config placeholders,
 - health endpoint demonstration,
 - responsive layout,
 - testable components,
@@ -209,6 +271,6 @@ Not allowed in the first implementation milestone:
 
 ## V1 completion signal
 
-V1 is successful if the owner can look at the shell and say: "Yes, this is the visual and structural direction for the ORBIS control center," while the codebase also passes the repository's full first-code quality gate.
+V1 is successful if the owner can see the important ORBIS control areas at a glance, tap through projects/categories step-by-step, reach project-specific admin summaries, copy safe operational identifiers easily, and say: "Yes, this is the visual and structural direction for the ORBIS control center."
 
 This visual approval does not itself authorize later identity/database/production-control implementation; those remain separate architecture and implementation steps.
