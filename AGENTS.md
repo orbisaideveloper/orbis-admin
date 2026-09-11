@@ -87,14 +87,105 @@ If verification is incomplete, say exactly what remains unverified.
 - Production deployment follows an approved merge and should remain an explicit/manual action unless a later accepted architecture decision changes that policy.
 - Production-impacting operations require stronger authorization and auditability than read-only observability.
 
-## Operational execution and reporting
+## Execution environment and shared toolchain
 
-- Long-running or multi-step verification commands must keep the interactive shell usable whenever practical.
-- Every long-running verification, audit, migration, deployment validation, or repository-governance command executed from Termux must write a timestamped report to the Android Downloads folder.
-- Preferred Termux report location: `$HOME/storage/downloads/` after Termux storage access has been granted.
-- Reports should include repository, branch, HEAD, command purpose, start/end time where practical, exit status, and concise PASS/FAIL findings.
-- If a long-running command fails, preserve the report and stop before destructive recovery actions.
-- Never hide failures by resetting, force-pushing, deleting, or rewriting history unless the user explicitly authorizes the exact recovery action.
+ORBIS work is performed from Android Termux with an Ubuntu `proot-distro` environment available for standard Linux tooling. Future chats, agents, and contributors must inspect the existing environment before installing or replacing tools.
+
+### Shared tools vs project-local configuration
+
+- Termux is one shared user environment across ORBIS repositories. Common command-line tools such as Git, GitHub CLI, Node/npm, Python, and compatible utilities are installed once and reused; do not reinstall them merely because the active repository changed.
+- Ubuntu/proot is the shared standard-Linux execution environment for tools that depend on glibc or otherwise do not run correctly in native Android Termux.
+- Before any install or upgrade, first check whether the tool already exists and is usable in native Termux **and** in Ubuntu/proot when relevant. Prefer `command -v <tool>` plus a safe version/status command; for Ubuntu use `proot-distro login ubuntu -- bash -lc 'command -v <tool> && <tool> --version'` or the closest non-destructive equivalent.
+- Do not reinstall, replace, or upgrade an existing working shared tool without a specific reason and appropriate verification.
+- A shared CLI/authentication context does **not** make project configuration shared. Repository files, project keys, GitHub repository secrets, Sonar configuration, Render services, Supabase projects/databases, environment variables, and deployment settings remain project-specific.
+- Never copy or reuse another ORBIS product's project key, secret, database configuration, deployment target, or write-capable integration merely because the same CLI is authenticated.
+
+### Android ARM64 placement rules
+
+- SonarQube CLI must be installed and executed in Ubuntu/proot for this Android ARM64 workflow, not relied upon as a native Termux binary. The official Linux ARM64 SonarQube CLI binary is a standard Linux binary and the observed native Termux install was not executable in the Android userspace.
+- If Prisma engine tooling is introduced in ORBIS Admin, do not run Prisma engines in native Termux Android ARM64; use Ubuntu/proot or an approved raw-SQL/provider workflow as appropriate.
+- Other tools that fail because of Linux ABI/runtime assumptions should be moved to Ubuntu/proot rather than repeatedly reinstalled in native Termux.
+
+### ORBIS Admin repository isolation
+
+- When the task is ORBIS Admin, the working repository is `~/orbis-admin` and the expected GitHub repository is `orbisaideveloper/orbis-admin`.
+- Before any mutating setup, GitHub, Sonar, Render, Supabase, migration, deployment, or repository command block, verify the current repository/path and remote target.
+- Do not inspect, modify, reconfigure, or use another ORBIS repository as a write target unless the user explicitly asks for that repository in the current task.
+- Shared user-level tools may be used from ORBIS Admin, but project-level actions must remain scoped to ORBIS Admin.
+
+## Termux command reporting policy
+
+ORBIS Admin work is mobile-first. Important Termux command output must be preserved as a file so it can be uploaded and reviewed without relying on screenshots or copied terminal history.
+
+### Commands that MUST create a Downloads report
+
+Any Termux command or command block that produces evidence needed to decide, verify, diagnose, configure, migrate, deploy, review, or recover the repository/system must save a timestamped report in Android Downloads. This includes, but is not limited to:
+
+- GitHub repository or Ruleset setup/verification,
+- branch/PR/merge verification blocks,
+- CI, Sonar, Render, Supabase, deployment, or environment diagnostics,
+- test, coverage, lint, type-check, build, Knip, JSCPD, Playwright, mutation, security, dependency, or quality runs,
+- database/schema/migration/drift checks,
+- architecture/security/tenant audits,
+- install/upgrade/setup commands whose output may affect the next decision,
+- multi-step troubleshooting or recovery commands,
+- any command that may run for more than a trivial moment or may produce substantial output,
+- any command whose result the user is expected to send back for review.
+
+### Commands that normally do NOT need a report
+
+Simple navigation or one-line orientation commands such as `cd`, `pwd`, `ls`, a single `git status -sb`, or another short read-only command do not need a separate report unless they are part of a larger verification/setup block or their output is specifically needed as evidence.
+
+### Required report behavior
+
+- Preferred path: `$HOME/storage/downloads/` after Termux storage access has been granted.
+- File names must be timestamped and descriptive, preferably `ORBIS-ADMIN-<TASK>-YYYYMMDD-HHMMSS.txt`.
+- Capture both stdout and stderr, normally with `2>&1 | tee "$REPORT"` or an equivalent safe wrapper.
+- The report should include, when relevant: repository path/name, branch, HEAD SHA, task purpose, start time, commands/stages, PASS/FAIL state, exit code, warnings, and finish time.
+- Show the final report path clearly in the terminal after the run.
+- Preserve the report even on failure.
+- Stop on unsafe or ambiguous failures before destructive recovery actions.
+- Do not hide failures by resetting, force-pushing, deleting, rewriting history, or discarding local work unless the user explicitly authorizes the exact recovery action.
+- Prefer fail-fast behavior for verification/setup blocks when continuing could create misleading results.
+- Keep the interactive shell responsive whenever practical; long-running workflows should use safe reporting/checkpoint behavior appropriate to the task.
+
+### Standard Termux reporting pattern
+
+Use a subshell for report-worthy blocks so an internal `exit` propagates a useful status without closing the user's interactive Termux shell:
+
+```bash
+TS="$(date +%Y%m%d-%H%M%S)"
+REPORT="$HOME/storage/downloads/ORBIS-ADMIN-<TASK>-$TS.txt"
+
+(
+  set -o pipefail
+
+  {
+    echo "Started: $(date)"
+    echo "Repo: $(pwd)"
+    echo "Branch: $(git branch --show-current 2>/dev/null || true)"
+    echo "HEAD: $(git rev-parse HEAD 2>/dev/null || true)"
+
+    # task commands here
+
+    echo "Finished: $(date)"
+  } 2>&1 | tee "$REPORT"
+
+  RC=${PIPESTATUS[0]}
+  {
+    echo "REPORT: $REPORT"
+    echo "EXIT CODE: $RC"
+  } | tee -a "$REPORT"
+
+  exit "$RC"
+)
+RC=$?
+echo "COMMAND BLOCK EXIT CODE: $RC"
+```
+
+The `exit` above is intentionally inside the subshell. Do not place `exit "$RC"` at the end of a pasted interactive Termux command block where it would close the user's shell.
+
+Use this as a baseline, adapting it when the command has special exit-code, background-process, secret-redaction, or checkpoint requirements. Never print secret values into a report.
 
 ## Source-first behavior
 
@@ -148,4 +239,4 @@ A change is not complete merely because code compiles. Completion should include
 - a reviewable PR with clear scope,
 - successful required CI/quality/preview checks,
 - explicit/manual merge acceptance,
-- a preserved timestamped Downloads report for any long-running local verification or audit.
+- a preserved timestamped Downloads report for every report-worthy Termux command or command block used as implementation, setup, diagnostic, audit, or verification evidence.
