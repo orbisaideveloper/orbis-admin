@@ -2,6 +2,7 @@
 
 import json
 import sys
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 root = Path(".sonar-diagnostics")
@@ -28,8 +29,8 @@ def numeric(metric):
     if not item:
         return None
     try:
-        return float(item.get("actualValue"))
-    except (TypeError, ValueError):
+        return Decimal(str(item.get("actualValue")))
+    except (InvalidOperation, TypeError, ValueError):
         return None
 
 coverage = numeric("new_coverage")
@@ -39,10 +40,10 @@ reliability = numeric("new_reliability_rating")
 maintainability = numeric("new_maintainability_rating")
 hotspots_reviewed = numeric("new_security_hotspots_reviewed")
 
-if coverage is not None and coverage != 100.0:
+if coverage is not None and coverage != Decimal("100.0"):
     failures.append(f"new coverage must be 100.0%, actual={coverage}%")
 
-if duplication is not None and duplication != 0.0:
+if duplication is not None and duplication != Decimal("0.0"):
     failures.append(
         f"new duplicated lines density must be 0.0%, actual={duplication}%"
     )
@@ -52,10 +53,10 @@ for name, value in (
     ("reliability rating", reliability),
     ("maintainability rating", maintainability),
 ):
-    if value is not None and value != 1.0:
+    if value is not None and value != Decimal("1.0"):
         failures.append(f"{name} must be A/1, actual={value}")
 
-if hotspots_reviewed is not None and hotspots_reviewed != 100.0:
+if hotspots_reviewed is not None and hotspots_reviewed != Decimal("100.0"):
     failures.append(
         "security hotspots reviewed must be 100%, "
         f"actual={hotspots_reviewed}%"

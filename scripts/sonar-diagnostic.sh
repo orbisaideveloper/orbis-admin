@@ -70,6 +70,15 @@ if [[ "$MODE" == "pr" ]]; then
     --data-urlencode "projectKey=$PROJECT_KEY" \
     --data-urlencode "pullRequest=$VALUE" \
     --data-urlencode "ps=$PAGE_SIZE"
+
+  api_get \
+    "measures/component_tree" \
+    "$OUT_DIR/duplication-files.json" \
+    --data-urlencode "component=$PROJECT_KEY" \
+    --data-urlencode "pullRequest=$VALUE" \
+    --data-urlencode "metricKeys=new_duplicated_lines,new_duplicated_lines_density,new_lines" \
+    --data-urlencode "qualifiers=FIL" \
+    --data-urlencode "ps=500"
 else
   SCOPE_LABEL="branch ${VALUE}"
 
@@ -93,6 +102,15 @@ else
     --data-urlencode "projectKey=$PROJECT_KEY" \
     --data-urlencode "branch=$VALUE" \
     --data-urlencode "ps=$PAGE_SIZE"
+
+  api_get \
+    "measures/component_tree" \
+    "$OUT_DIR/duplication-files.json" \
+    --data-urlencode "component=$PROJECT_KEY" \
+    --data-urlencode "branch=$VALUE" \
+    --data-urlencode "metricKeys=new_duplicated_lines,new_duplicated_lines_density,new_lines" \
+    --data-urlencode "qualifiers=FIL" \
+    --data-urlencode "ps=500"
 fi
 
 export SONAR_DIAG_SCOPE="$SCOPE_LABEL"
@@ -116,6 +134,7 @@ def load(name):
 gate = load("quality-gate.json")
 issues_data = load("issues.json")
 hotspots_data = load("hotspots.json")
+duplication_data = load("duplication-files.json")
 
 lines = [
     "# SonarQube Cloud diagnostic",
@@ -170,6 +189,47 @@ for item in issues[:25]:
 
 if issues_data.get("diagnosticError"):
     lines.append(f"- Issues API: {issues_data['diagnosticError']}")
+
+lines += ["", "## New-code duplication by file"]
+
+duplicated_files = []
+
+for component in duplication_data.get("components", []):
+    values = {}
+
+    for measure in component.get("measures", []):
+        periods = measure.get("periods") or []
+        value = periods[0].get("value") if periods else measure.get("value")
+        values[measure.get("metric")] = value
+
+    try:
+        duplicated_lines = float(values.get("new_duplicated_lines") or 0)
+    except (TypeError, ValueError):
+        duplicated_lines = 0
+
+    if duplicated_lines > 0:
+        duplicated_files.append(
+            (
+                component.get("path") or component.get("key") or "unknown",
+                values.get("new_duplicated_lines", "0"),
+                values.get("new_duplicated_lines_density", "0"),
+                values.get("new_lines", "0"),
+            )
+        )
+
+if duplicated_files:
+    for path, duplicated_lines, density, new_lines in duplicated_files:
+        lines.append(
+            f"- {path}: new_duplicated_lines={duplicated_lines}, "
+            f"density={density}%, new_lines={new_lines}"
+        )
+else:
+    lines.append("- none")
+
+if duplication_data.get("diagnosticError"):
+    lines.append(
+        f"- Duplication API: {duplication_data['diagnosticError']}"
+    )
 
 hotspots = hotspots_data.get("hotspots", [])
 hotspot_total = (

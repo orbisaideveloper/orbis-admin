@@ -24,7 +24,7 @@ echo "Started: $(date)"
 echo "Commit: $SHA"
 
 if ! command -v gh >/dev/null 2>&1; then
-  echo "ERROR: gh CLI is unavailable."
+  echo "ERROR: gh CLI is unavailable." >&2
   exit 1
 fi
 
@@ -49,7 +49,7 @@ for _ in $(seq 1 120); do
 done
 
 if [[ -z "$RUN_ID" ]]; then
-  echo "ERROR: PR Quality Gate was not found within 10 minutes."
+  echo "ERROR: PR Quality Gate was not found within 10 minutes." >&2
   exit 2
 fi
 
