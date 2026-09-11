@@ -2,6 +2,12 @@
 
 ORBIS Admin is a control-plane repository. Changes can affect identity, authorization, deployments, and operational visibility across the ORBIS ecosystem, so contribution rules are intentionally conservative.
 
+## Before starting work
+
+Read `AGENTS.md` first, then `docs/PROJECT-STATE.md` for the current roadmap phase, verified baseline, and exact next action. Consult `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/QUALITY-GATES.md` before changing architecture or delivery behavior. While the first application scaffold is being planned/built, also read `docs/FIRST-APPLICATION-PLAN.md`.
+
+The project-state handoff is not a substitute for live verification. Check the current repository/branch/HEAD and relevant GitHub, Sonar, Render, database, or deployment state before mutations.
+
 ## Standard workflow
 
 1. Start from an up-to-date `main` branch.
@@ -9,10 +15,11 @@ ORBIS Admin is a control-plane repository. Changes can affect identity, authoriz
 3. Make the smallest coherent change that solves the task.
 4. Run targeted verification for the changed area.
 5. Push the branch and open a pull request.
-6. Review the PR preview, checks, diff, and risk notes.
+6. Review the PR preview when applicable, required checks, diff, and risk notes.
 7. Resolve review conversations.
 8. Merge manually only when required checks are green and the change is understood.
 9. Production deployment follows the approved merge path and remains explicit/manual unless a later accepted decision changes it.
+10. Update `docs/PROJECT-STATE.md` in the same PR when the roadmap phase, verified setup, or exact next action materially changes.
 
 Do not use `main` as the normal development branch.
 
@@ -52,13 +59,14 @@ Before a production-critical release, required repository checks should provide 
 
 ## SonarQube Cloud / SonarCloud
 
-Once configured:
+Once configured for application code:
 
 - use Sonar analysis primarily on pull requests,
 - require the configured quality gate to pass before merge,
 - enforce a no-new-issues policy on changed/new code,
 - avoid unnecessary scans on arbitrary branch pushes when conserving analysis quota matters,
-- configure main/release scan cadence separately.
+- configure main/release scan cadence separately,
+- never guess a Sonar check name before making it required in the Ruleset.
 
 ## Preview and deployment
 
@@ -100,6 +108,10 @@ Actions that can affect production, user access, deployments, infrastructure con
 
 ## Termux reporting
 
-Long-running verification, audit, migration, deployment validation, or governance commands executed from Termux must preserve a timestamped report in `$HOME/storage/downloads/`.
+Follow the complete reporting rules in `AGENTS.md`.
 
-The report should record the repository, branch, HEAD, purpose, result, and useful failure context. If a command fails, preserve the report and stop before destructive recovery actions.
+Any report-worthy Termux command or command block used as setup, verification, diagnostic, audit, migration, deployment, governance, or review evidence must preserve a timestamped report in `$HOME/storage/downloads/`, including stdout/stderr and a useful final exit/result summary where practical.
+
+Simple navigation/orientation commands do not normally require standalone reports unless they are part of a larger evidence-producing block.
+
+Preserve failure reports and stop before destructive recovery. Do not force-push, reset, delete, rewrite history, or discard work as an automatic recovery step.
