@@ -26,58 +26,58 @@ Do not rely on this file alone for live external state. Before a mutating GitHub
 - Default/protected branch: `main`
 - ORBIS Admin work must not modify another ORBIS repository unless the user explicitly asks for that repository in the current task.
 
-## Verified baseline after PR #3
+## Verified baseline after PR #4
 
-PR #3, `docs: finalize ORBIS Admin Step 3 architecture and V1 plan`, was squash-merged into `main`.
+PR #4, `feat: add first ORBIS Admin V1 application scaffold`, is merged.
 
-Verified merge commit:
+Verified PR head:
 
-`3392c5fb37ba1a7293dc3bc3beef9f297b4e8994`
+`69883eeaf22e43bdb1aafcf54dddec6cfad51403`
 
-Step 4 implementation is now isolated on `feat/first-admin-scaffold`. The first application-code PR has not yet been opened or merged.
+Verified merge commit on `main`:
 
-### GitHub governance
+`0690ff6421130b13b0da2e49e90dc7aef64efb97`
 
-- `main` is protected through the active `Protect main` ruleset.
-- Pull requests are required.
-- Review-thread resolution is required.
-- Force-pushes and deletion of `main` are blocked.
-- Required GitHub Actions context: `Build, Test & Safety Audit`.
-- Required-check policy uses strict branch-up-to-date enforcement.
-- Merge acceptance remains explicit/manual; auto-merge is not the default workflow.
+The merged scaffold provides the first deployable responsive owner/admin command-center shell, project/category/detail navigation, safe Copy controls, demo/read-only operational data, Fastify `/health`, shared contracts, and strict application tooling.
 
-### CI and quality baseline
+### GitHub governance and CI
 
-The repository contains `.github/workflows/pr-checks.yml`.
-
-While the repository is governance/documentation-only, the workflow performs governance, Sonar-project isolation, and sensitive-file checks.
-
-When application code exists, the workflow switches automatically to the full quality contract. The first application PR must satisfy the exact requirements in `docs/QUALITY-GATES.md` and `docs/FIRST-APPLICATION-PLAN.md`.
+- `main` remains protected and PR-first.
+- manual merge/acceptance remains required.
+- the full application quality path is verified on PR #4: lint, TypeScript, tests/coverage, Knip, JSCPD, dependency audit, production build, Sonar Quality Gate, and strict Sonar coverage/duplication gate all passed.
 
 ### SonarQube Cloud
 
-Verified project identity:
+Verified project identity remains organization `orbis`, project key `orbisaideveloper_orbis-admin`, project name `orbis-admin`, with `SONAR_TOKEN` held as a GitHub Actions secret.
 
-- organization: `orbis`
-- project key: `orbisaideveloper_orbis-admin`
-- project name: `orbis-admin`
-- GitHub Actions secret name: `SONAR_TOKEN`
+### Render staging
 
-The repository is bound to the Admin project only. The first real application code is now being built on `feat/first-admin-scaffold`; the first application-code Sonar analysis will run when that branch is pushed and opened as a PR. Server-side Quality Gate behavior must be verified from that real scan before it is claimed as enforced.
+The authoritative staging service is `orbis-admin-staging` for repository `orbisaideveloper/orbis-admin`, branch `staging`, region Singapore, Auto Deploy OFF, with explicit/manual deployments.
 
-### Render
+Staging URL: `https://orbis-admin-staging.onrender.com`
 
-The confirmed Render workspace is `My Workspace` for the ORBIS Admin setup.
+The latest reviewed staging artifact was built from approved PR head `69883eeaf22e43bdb1aafcf54dddec6cfad51403`. The public mobile staging UI was reviewed successfully.
 
-No `orbis-admin` Render service exists yet by design. A Render service and PR Preview must not be created until the first deployable application scaffold exists. Existing services belonging to other ORBIS products are not ORBIS Admin write targets.
+Current accepted pre-merge flow is:
+
+`feature/docs branch -> PR -> GitHub/Sonar green -> exact approved commit -> staging branch -> manual Render deploy -> staging review -> explicit merge`
+
+Ephemeral per-PR Render previews are not currently required. Production Admin Render setup remains deferred.
 
 ### Application/database/auth status
 
-- The first ORBIS Admin application scaffold is now in progress on `feat/first-admin-scaffold`.
-- No ORBIS Admin production/staging Render service exists yet.
-- No ORBIS Admin application database schema has been implemented yet.
-- No ORBIS Admin authentication/SSO implementation has been started yet.
-- No product-specific business data belongs in the Admin database.
+- first application scaffold: merged,
+- permanent staging service: live/manual deploy,
+- production Admin service: not yet established,
+- Admin database: not yet implemented,
+- central identity persistence: not yet implemented,
+- owner/admin auth/SSO: not yet implemented,
+- passkey/WebAuthn: future-ready, implementation deferred,
+- privileged provider/product writes: not implemented.
+
+### Known immediate V1 limitations
+
+The current shell still uses static/demo provider state. GitHub and Sonar provider links inside detail views need to open their real destinations, provider-specific detail layouts still need real read-only metadata, and demo labels such as `First scan pending` / `Setup later` must later be replaced by live provider status. These are follow-up items, not retroactive blockers for the merged scaffold.
 
 ## Confirmed product vision
 
@@ -130,46 +130,30 @@ Current Step 3 documents:
 
 PR #3 has been merged to `main`; no production application code was part of that planning PR.
 
-### Step 4 — First application scaffold PR — IN PROGRESS
+### Step 4 — First application scaffold — COMPLETE
 
-The first deployable ORBIS Admin application scaffold is being implemented on `feat/first-admin-scaffold`.
+PR #4 is merged and the first V1 owner/admin shell is deployable.
 
-The first scaffold is an owner-admin shell and delivery foundation. It includes the approved responsive command-center shell, safe demo/read-only navigation, and `/health` API contract, but it must not add real customer data, database writes, authentication, publish/deploy/rollback controls, or live product write integrations.
+### Step 5 — Staging / delivery foundation — IN PROGRESS
 
-The first application PR activates the full application quality gate: lint, type-check, tests, 100% aggregate coverage, Knip, JSCPD, dependency audit, production build, smoke verification, and Sonar analysis/Quality Gate.
+The dedicated `staging` branch and `orbis-admin-staging` manual Render service exist and have been used for pre-merge review.
 
-### Step 5 — Render service and PR Preview — PENDING
-
-After the first application scaffold is accepted and available on `main`, create the independent ORBIS Admin Render service in the confirmed workspace, keep production deployment explicit/manual, configure PR Preview, verify the stable Render check context, and only then consider adding that exact check to the GitHub ruleset.
+Keep Step 5 narrow: document/verify the staging workflow, fix safe provider links/details, keep provider metadata registry-shaped, and verify staging smoke behavior. Do not pull authentication, central identity DB implementation, or privileged write controls into Step 5. Production service/setup remains explicit and deferred until separately approved.
 
 ## What comes after Step 5
 
-Only after the delivery/runtime foundation is stable should implementation move into the control-plane domains, in deliberate architecture PRs:
+Implementation proceeds in deliberate phases:
 
-- owner/admin authentication,
-- central ORBIS identity and authentication contract,
-- authorization/capability model,
-- dedicated Admin database and migrations,
-- dynamic product/project registry,
-- user-product membership/entitlement model,
-- module/model version and publish-state contracts,
-- audit log,
-- read-only GitHub/Sonar/Render operational visibility,
-- carefully permissioned publish/deploy/rollback and other administrative actions.
-
-These are not part of the first scaffold PR.
+- **Auth / Identity:** dedicated Admin DB, UUIDv7 identities, opaque display IDs, authentication/session contract, memberships/entitlements, scoped capability model, backup/restore baseline. Passkey implementation remains deferred to a focused security PR.
+- **Registry / Read-only integrations:** database-backed project registry, GitHub/Sonar/Render read-only integration, health aggregation, provider/product adapters as needed, audit visibility.
+- **Controlled actions:** only after read-only/audit boundaries are proven; low-risk mutations first, production publish/deploy later, destructive/security/recovery controls last, with emergency write-disable controls in place.
+- **Enterprise hardening:** tamper-evident audit when technically justified, formal metrics/traces, DR drills/RPO/RTO, SBOM/provenance/signing, dependency/license maturity, mature passkey/re-auth flows.
 
 ## Current exact next action
 
-Finish the Step 4 scaffold on `feat/first-admin-scaffold`:
+Create and review a documentation-only architecture-lock PR that updates `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and this file. It must not change application code, database schema, authentication, provider integration, or write controls.
 
-1. complete the approved compact responsive owner dashboard, routing, safe Copy controls, shared health contract, and tests,
-2. run targeted local verification for the changed application area,
-3. commit and push the feature branch,
-4. open the first application-code PR so the full GitHub/Sonar quality gate runs,
-5. merge only after required checks are green and the user explicitly accepts the merge.
-
-Do not create the ORBIS Admin Render service until this first deployable scaffold is accepted on `main`.
+After that documentation PR is accepted, continue Step 5 with the small provider-link/detail and staging-delivery work.
 
 ## Handoff/update discipline
 
