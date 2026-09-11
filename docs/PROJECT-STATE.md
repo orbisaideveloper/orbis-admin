@@ -15,7 +15,7 @@ Before proposing or performing ORBIS Admin work, read these files in this order:
 5. `docs/DECISIONS.md` — durable architecture decisions.
 6. `docs/QUALITY-GATES.md` — CI, coverage, Sonar, and preview requirements.
 7. `docs/FIRST-APPLICATION-PLAN.md` — Step 3/Step 4 implementation plan.
-8. `docs/V1-SCREEN-PLAN.md` — proposed Version 1 owner-dashboard screens and safe visual scope.
+8. `docs/V1-SCREEN-PLAN.md` — approved Version 1 owner-dashboard layout and interaction rules.
 
 Do not rely on this file alone for live external state. Before a mutating GitHub, Sonar, Render, Supabase, deployment, or database action, verify the current repository, branch/HEAD, and relevant external resource.
 
@@ -81,14 +81,15 @@ No `orbis-admin` Render service exists yet by design. A Render service and PR Pr
 
 ## Confirmed product vision
 
-The intended product direction is now documented in `docs/CONTROL-PLANE-VISION.md`:
+The intended product direction is documented in `docs/CONTROL-PLANE-VISION.md`:
 
 1. ORBIS Admin becomes the **single owner/admin control center** for all present and future ORBIS projects.
 2. ORBIS Admin also becomes the **central ORBIS user/customer identity registry** so one person keeps one permanent ORBIS identity across products.
 3. Customers use their product/app, not the owner dashboard.
 4. Product-specific business data remains in each product's own database.
-5. New ORBIS projects must be onboardable through a registry/integration model rather than requiring a custom hard-coded dashboard redesign.
-6. Older admin/dashboard surfaces stay in service until the new control center has genuinely replaced and verified their required capabilities.
+5. ORBIS Admin remains independently deployed and later uses its own dedicated database.
+6. New ORBIS projects are onboarded through a registry/integration model rather than custom hard-coded redesign.
+7. Older admin/dashboard surfaces stay in service until the new control center has genuinely replaced and verified their required capabilities.
 
 ## Canonical five-step roadmap
 
@@ -100,28 +101,46 @@ Repository governance, permanent instructions, PR-first delivery, protected `mai
 
 The required `Build, Test & Safety Audit` context, zero-debt CI contract, isolated Sonar project binding, and reporting/toolchain rules are established.
 
-### Step 3 — Pre-code architecture and exact first PR plan — IN PROGRESS
+### Step 3 — Pre-code architecture and exact first PR plan — APPROVED; PLANNING PR NOT YET MERGED
 
-The owner-control/central-identity vision is documented. The proposed first application architecture and Version 1 screen plan are now under review.
+The owner-control/central-identity vision, first application stack, and Version 1 visual/navigation direction have been reviewed and approved.
+
+Accepted durable decisions now include:
+
+- ADR-012: React/Vite web + Fastify API + shared TypeScript contracts,
+- ADR-013: compact card-first owner dashboard, reliable Back/Home navigation, aggregate project-health cards, and distinct mobile/desktop layouts within one maintainable application.
+
+The approved V1 refinements include:
+
+- remove redundant small `Command Center` text above the real Home heading,
+- make the primary Projects card shorter/flatter so more cards fit in the first mobile viewport,
+- mobile and desktop are intentionally different responsive compositions, not separate codebases,
+- every secondary screen has Back + Home,
+- browser/device Back follows internal route history,
+- project -> project admin area -> exact detail drill-down,
+- GitHub Actions/Sonar/Render aggregate state shows which registered project needs attention,
+- safe operational values support Copy controls; secrets never do.
 
 Current Step 3 documents:
 
 - `docs/CONTROL-PLANE-VISION.md`
 - `docs/FIRST-APPLICATION-PLAN.md`
 - `docs/V1-SCREEN-PLAN.md`
-- proposed ADR-012 in `docs/DECISIONS.md`
+- accepted ADR-012 and ADR-013 in `docs/DECISIONS.md`
 
-No production application code is being added in this planning PR.
+No production application code has been added in this planning PR.
 
-### Step 4 — First application scaffold PR — PENDING
+### Step 4 — First application scaffold PR — NEXT AFTER STEP 3 MERGE
 
-After Step 3 is accepted and merged, create the first deployable ORBIS Admin application scaffold on a new feature branch. The PR must activate and pass the full application quality gate.
+After the Step 3 planning PR is manually merged and local `main` is synced, create the first deployable ORBIS Admin application scaffold on a new feature branch.
 
-The first scaffold is an owner-admin shell and delivery foundation. It may contain safe demo/read-only dashboard state and the `/health` API contract, but it must not add real customer data, database writes, authentication, publish/deploy/rollback controls, or production integrations.
+The first scaffold is an owner-admin shell and delivery foundation. It includes the approved responsive command-center shell, safe demo/read-only navigation, and `/health` API contract, but it must not add real customer data, database writes, authentication, publish/deploy/rollback controls, or live product write integrations.
+
+The first application PR activates the full application quality gate: lint, type-check, tests, 100% aggregate coverage, Knip, JSCPD, dependency audit, production build, smoke verification, and Sonar analysis/Quality Gate.
 
 ### Step 5 — Render service and PR Preview — PENDING
 
-After the first application scaffold is accepted and available on `main`, create the ORBIS Admin Render service in the confirmed workspace, keep production deployment explicit/manual, configure PR Preview, verify the stable Render check context, and only then consider adding that check to the GitHub ruleset.
+After the first application scaffold is accepted and available on `main`, create the independent ORBIS Admin Render service in the confirmed workspace, keep production deployment explicit/manual, configure PR Preview, verify the stable Render check context, and only then consider adding that exact check to the GitHub ruleset.
 
 ## What comes after Step 5
 
@@ -130,21 +149,27 @@ Only after the delivery/runtime foundation is stable should implementation move 
 - owner/admin authentication,
 - central ORBIS identity and authentication contract,
 - authorization/capability model,
-- Admin database and migrations,
+- dedicated Admin database and migrations,
 - dynamic product/project registry,
 - user-product membership/entitlement model,
 - module/model version and publish-state contracts,
 - audit log,
-- read-only GitHub/Render operational visibility,
+- read-only GitHub/Sonar/Render operational visibility,
 - carefully permissioned publish/deploy/rollback and other administrative actions.
 
 These are not part of the first scaffold PR.
 
 ## Current exact next action
 
-Review the proposed Version 1 dashboard information architecture and visual direction. The owner should decide whether the V1 shell feels like the correct ORBIS command center and request any layout/screen changes.
+Finish Step 3 delivery evidence:
 
-Do **not** start production application code until that review is complete. After visual/structural approval, finalize Step 3, mark the durable first-stack decision accepted, merge the planning PR manually after required checks are green, sync local `main`, and start Step 4 on a new feature branch.
+1. verify the planning PR's required governance-only check is green,
+2. manually merge the planning PR only after explicit merge acceptance,
+3. sync local `main`,
+4. create a new Step 4 application feature branch,
+5. implement the approved first scaffold and let the full application quality gate run.
+
+Do not mix Step 4 production application code into the Step 3 planning branch.
 
 ## Handoff/update discipline
 
