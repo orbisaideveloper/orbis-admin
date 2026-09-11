@@ -112,9 +112,9 @@ For ORBIS Admin operational work, verify the working repo is `~/orbis-admin` and
 
 ## ADR-012 — First application scaffold stack
 
-**Status:** Proposed — requires review before Step 4 implementation
+**Status:** Accepted
 
-The first deployable ORBIS Admin application scaffold is proposed as a strict TypeScript npm workspace with:
+The first deployable ORBIS Admin application scaffold uses a strict TypeScript npm workspace with:
 
 - `apps/web`: React + Vite administrative UI,
 - `apps/api`: Fastify HTTP API,
@@ -123,17 +123,35 @@ The first deployable ORBIS Admin application scaffold is proposed as a strict Ty
 - Vitest-based tests and coverage,
 - ESLint, Knip, JSCPD, dependency audit, production build, smoke/startup verification, and Sonar analysis as required PR gates.
 
-The first runtime contract is a minimal non-secret `GET /health` endpoint plus a minimal accessible administrative shell. The first scaffold PR deliberately excludes database, authentication, ORBIS identity persistence, product integrations, and administrative write controls.
+The first runtime contract is a minimal non-secret `GET /health` endpoint plus the approved owner/admin shell. The first scaffold PR deliberately excludes database, authentication, ORBIS identity persistence, live product integrations, and administrative write controls.
 
-Reasons for the proposal:
+Reasons:
 
 - preserve a clear browser/server trust boundary,
 - keep privileged GitHub/Render/database credentials on the server,
 - establish shared API contracts before feature growth,
 - remain small enough to satisfy the repository's 100% first-code coverage policy,
-- produce deterministic build/start commands suitable for later Render deployment without coupling Step 3 planning to a live deployment.
+- produce deterministic build/start commands suitable for later Render deployment.
 
-If this proposal is accepted, change the status to **Accepted** in the Step 3 planning PR before merge. If a different stack is chosen, update `docs/FIRST-APPLICATION-PLAN.md`, CI assumptions, and this ADR together so future sessions do not inherit contradictory guidance.
+## ADR-013 — V1 owner dashboard navigation and responsive layout
+
+**Status:** Accepted
+
+The first owner/admin shell uses a compact card-first command-center model.
+
+Accepted interaction rules:
+
+- the first mobile viewport should prioritize the complete high-value command board and avoid unnecessary vertical duplication,
+- the main **Projects** card is the primary entry point but should remain compact/flat enough to preserve the rest of the dashboard at a glance,
+- global GitHub Actions, Sonar, Render, health, alerts, users, review/publish, audit, and settings cards remain available as direct cross-project entry points,
+- every secondary screen provides **Back** and **Home** navigation; browser/device Back should move through the internal route history rather than unexpectedly dumping the user to Home or out of the application,
+- the home screen must not repeat a small breadcrumb/title such as `Command Center` immediately above the real `Command Center` page heading,
+- project drill-down follows `Home -> Projects -> Project -> exact admin area -> detail`,
+- global health cards show aggregate state and turn attention/failure color when any connected registered project needs attention; opening the card reveals which project is affected,
+- safe non-secret operational values may expose one-tap Copy controls and later an AI-ready diagnostic brief; secrets are never rendered for copying,
+- mobile and desktop are deliberately optimized as distinct layout modes, but they share the same data model, routes, components, accessibility rules, and business behavior rather than becoming two divergent applications.
+
+The visual direction is the approved high-tech ORBIS control-room style: dark high-contrast base, crystal-bright surfaces, clean status color, compact cards, strong readability, and responsive layout.
 
 ## Future decisions to formalize
 
