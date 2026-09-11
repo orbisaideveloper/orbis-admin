@@ -88,6 +88,33 @@ Conceptually:
 
 Each product may have its own local profile row, but it references the same central ORBIS identity.
 
+## ORBIS Admin infrastructure independence — non-negotiable
+
+ORBIS Admin is a fully independent project.
+
+It must have its **own database**, its **own deployment/service**, its **own environment variables/secrets**, and its own application lifecycle. It must never reuse another ORBIS product database as the Admin database merely because that database already exists.
+
+The intended boundary is:
+
+```text
+ORBIS Admin
+  own Admin database
+  own Render service/deployment
+  own secrets/configuration
+        |
+        +-- reads approved status from registered products/integrations
+        +-- sends approved administrative actions through explicit APIs
+
+Other ORBIS Products
+  each keeps its own database
+  each keeps its own deployment/runtime
+  each keeps its own domain/business data
+```
+
+If Supabase is chosen later for ORBIS Admin, it must be a dedicated ORBIS Admin Supabase project/database rather than an existing product database.
+
+A failure, schema change, migration, or deployment in another ORBIS product must not implicitly become an Admin database/runtime dependency.
+
 ## Product data boundary
 
 ORBIS Admin owns identity and control-plane metadata. It does **not** absorb every product's operational/business data.
@@ -114,11 +141,35 @@ A project registry record should eventually be able to describe, as applicable:
 - available environments,
 - module/model catalog location,
 - health endpoints,
+- Sonar project key/identity,
 - supported administrative capabilities,
 - integration state,
 - ownership/permission metadata.
 
 Not every project must expose every capability. The Admin should show controls only when a project declares and authorizes them.
+
+## What a project card opens
+
+Selecting a project in ORBIS Admin opens that project's **unified Admin detail view inside ORBIS Admin**. It does not blindly embed or clone the old product-specific admin UI.
+
+The unified project detail should collect the project's approved Admin-facing information in one place: overview, modules/models, versions, GitHub Actions, Sonar, Render/deployments, users/memberships, health, and audit/activity.
+
+Where useful, the page may also provide a clear deep-link such as **Open in GitHub**, **Open in SonarQube Cloud**, or **Open in Render**. Those links go to the original provider page, while the ORBIS Admin itself shows the important summary through secure server-side integrations.
+
+## Sonar/GitHub/Render aggregation behavior
+
+The top-level Sonar, GitHub Actions, and Render cards are cross-project views.
+
+They should show data only for projects that are registered and have the required integration identity/configuration. The Admin must not pretend that every repository or external project is automatically connected without configuration.
+
+For example, the Sonar view should eventually:
+
+1. list every registered ORBIS project that has a Sonar project identity,
+2. show its Quality Gate/status and useful summary metrics,
+3. let the owner select a project for deeper issue/quality details,
+4. provide an **Open in SonarQube Cloud** link to the original Sonar project when needed.
+
+The same pattern applies to GitHub Actions and Render: aggregated Admin summary first, project-specific detail second, original provider page available as an explicit deep-link.
 
 ## Module/model control requirement
 
@@ -129,14 +180,76 @@ For each module/model, the owner should be able to understand at minimum:
 - module/model name,
 - owning product,
 - current working version,
-- currently published version,
-- preview/review state,
-- release/publish readiness,
-- health/status where applicable,
-- last relevant change/release,
-- warnings or blocked checks.
+- published version,
+- status,
+- review state,
+- quality/health state,
+- last change.
+
+Future high-risk actions such as Publish, Promote, Rollback, or Disable must be permissioned and audited. In V1 they are absent or visibly disabled/demo-only.
 
 Publish/release buttons must never become decorative shortcuts around repository rules. A publish/deploy action must honor the accepted GitHub, quality, environment, permission, and audit policies.
+
+## Owner dashboard information architecture
+
+The home screen must be a **compact command board**, not a long scrolling report.
+
+The first viewport should present roughly 10–12 small high-value cards/tiles so the owner can understand the important areas at a glance. The exact count can change during visual review, but the principle is fixed: summary first, details after a tap.
+
+Example home cards:
+
+- Projects,
+- Modules / Models,
+- Central Users,
+- GitHub Actions,
+- Sonar Quality,
+- Render / Deployments,
+- Environments,
+- Review / Publish Queue,
+- Alerts / Incidents,
+- API / Service Health,
+- Activity / Audit,
+- Settings / Integrations.
+
+On mobile, the design should use compact micro-cards and responsive sizing so the command board remains glanceable without becoming a long page. Secondary details belong behind the card, not stacked underneath the home screen.
+
+## Drill-down navigation rule
+
+Navigation should follow a simple hierarchy:
+
+```text
+Home Command Center
+  -> category card
+     -> project or item card
+        -> detail
+```
+
+Every secondary/detail screen must provide:
+
+- a visible **Back** control for one level up,
+- a visible **Home** control for immediate return to the Command Center,
+- a clear page title/breadcrumb so the owner always knows where they are.
+
+Nested cards are preferred over one giant scrolling page when the information has a natural hierarchy.
+
+## Copyable admin information rule
+
+Admin work frequently needs identifiers and evidence copied into GitHub, Termux, support/debugging, or another control surface.
+
+Where safe and useful, ORBIS Admin should provide one-tap **Copy** controls for non-secret operational values such as:
+
+- repository name,
+- branch,
+- commit SHA,
+- project/module ID,
+- ORBIS display/user ID where authorized,
+- service/deployment ID,
+- Sonar project key,
+- URLs,
+- error/reference IDs,
+- non-secret diagnostic text.
+
+Never expose or add Copy controls for secrets, passwords, private tokens, service-role keys, or other credential material.
 
 ## Owner dashboard design goal
 
@@ -183,11 +296,14 @@ The first application version must prove the shell and delivery path without pre
 The first scaffold should therefore establish:
 
 - the owner-admin visual shell,
-- responsive navigation,
-- a Command Center/dashboard overview using safe placeholder/demo state,
+- responsive Home/Back navigation,
+- a compact 10–12-card Command Center using safe placeholder/demo state,
+- drill-down card patterns,
 - a project-list visual pattern that is clearly registry-driven,
+- project detail shell with GitHub/Sonar/Render integration slots,
 - a central-user-registry visual pattern without real customer data,
 - status/health visual components,
+- safe Copy controls for demo/non-secret values,
 - a minimal API `/health` contract,
 - quality/test/deploy readiness.
 
@@ -199,8 +315,10 @@ Future implementation should always be checked against these questions:
 
 - Can a new ORBIS product be added without redesigning the whole Admin?
 - Can the owner see all registered ORBIS products from one place?
-- Can each product expose status, modules/models, versions, and supported controls consistently?
+- Can each project expose status, modules/models, versions, and supported controls consistently?
+- Can GitHub/Sonar/Render summaries be viewed centrally while preserving links to the original provider pages?
 - Does one customer keep the same permanent ORBIS identity across products?
+- Does ORBIS Admin keep its own independent database and deployment?
 - Does product business data remain in the correct product database?
 - Are privileged credentials server-side only?
 - Are dangerous actions permissioned, confirmed where appropriate, and audited?
