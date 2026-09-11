@@ -148,3 +148,37 @@ Sonar Quality Gate.
 - never exclude legitimate production code simply to improve metrics
 - never analyze another ORBIS project's Sonar key
 - never merge while the required GitHub check is red
+
+## Workflow-definition safety
+
+Any modification to `.github/workflows/*.yml` or `*.yaml` must pass:
+
+`npm run check:workflows`
+
+before commit or push.
+
+ORBIS Admin also carries the independent
+`ORBIS Admin Workflow Syntax Guard`.
+
+### PR #4 bootstrap incident
+
+During the first application/Sonar bootstrap, a generated workflow edit
+accidentally removed the two-space indentation from the
+`sonar-main-baseline` job.
+
+The resulting YAML was textually clean but invalid as a GitHub Actions
+workflow because `sonar-main-baseline` became an unexpected top-level
+property instead of a child of `jobs`.
+
+`git diff --check`, shell syntax checks, JSON parsing, and grep checks
+cannot validate the GitHub Actions workflow schema.
+
+The local workflow validator now rejects unknown top-level workflow keys
+and malformed job placement before a workflow change is pushed.
+
+Do not rebuild YAML job blocks with generic string operations such as
+`.strip()` when leading indentation is semantically significant.
+
+If GitHub reports `Invalid workflow file` before any job starts, diagnose
+the workflow definition first. Do not troubleshoot Sonar, tests, Knip,
+JSCPD, or application code until the workflow itself validates.

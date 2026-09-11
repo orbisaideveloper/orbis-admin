@@ -60,6 +60,7 @@ jobs:
             .github/workflows/pr-checks.yml
             docs/SONAR-RUNBOOK.md
             scripts/sonar-diagnostic.sh
+            scripts/validate-workflows.mjs
           )
 
           for file in "${required_files[@]}"; do
@@ -284,7 +285,7 @@ jobs:
           echo "Repository, Sonar-project isolation, and sensitive-file guards passed."
           echo "The first application-code PR will automatically activate the full quality gate."
 
-sonar-main-baseline:
+  sonar-main-baseline:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.analysis_mode == 'main-baseline' }}
     name: Sonar Main Baseline
     runs-on: ubuntu-latest
