@@ -1,0 +1,36 @@
+{
+  "name": "orbis-admin",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "type-check": "tsc -p packages/contracts/tsconfig.json --noEmit && tsc -p apps/api/tsconfig.json --noEmit && tsc -p apps/web/tsconfig.app.json --noEmit",
+    "test:coverage": "vitest run --coverage --config vitest.config.ts",
+    "check:deadcode:ci": "knip",
+    "check:duplicates:ci": "jscpd apps packages --threshold 0",
+    "build": "npm run build --workspace @orbis-admin/contracts && npm run build --workspace @orbis-admin/api && npm run build --workspace @orbis-admin/web",
+    "test:smoke": "node --input-type=module -e \"const {buildApp}=await import('./apps/api/dist/index.js');const app=buildApp();const r=await app.inject({method:'GET',url:'/health'});if(r.statusCode!==200)process.exit(1);console.log('SMOKE /health:',r.body);await app.close();\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "jscpd": "^5.2.0",
+    "knip": "^6.35.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.0",
+    "jsdom": "^30.0.1"
+  },
+  "type": "module"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@orbis-admin/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node -e \"import('./dist/index.js').then(({ startServer }) => startServer(Number(process.env.PORT || 10000)))\""
+  },
+  "dependencies": {
+    "fastify": "latest",
+    "@orbis-admin/contracts": "0.1.0"
+  }
+}
