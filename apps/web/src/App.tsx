@@ -58,7 +58,7 @@ type RegistryState =
 export const registryErrorMessage = (reason: unknown) =>
   reason instanceof Error ? reason.message : 'Unable to load project registry'
 
-export const useProjectRegistry = (
+const useProjectRegistry = (
   loader: RegistryLoader = loadProjectRegistry,
 ): RegistryState => {
   const [state, setState] = useState<RegistryState>({
