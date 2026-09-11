@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+SHA="$(git rev-parse HEAD 2>/dev/null)" || exit 0
+
+if [[ -x "$ROOT/scripts/watch-ci-report.sh" ]]; then
+  nohup "$ROOT/scripts/watch-ci-report.sh" "$SHA" \
+    >/dev/null 2>&1 &
+fi
+
+exit 0

@@ -81,7 +81,7 @@ for (const file of workflowFiles) {
       }
 
       const jobMatch = line.match(
-        /^  ([A-Za-z_][A-Za-z0-9_-]*):\s*(?:#.*)?$/,
+        /^ {2}([A-Za-z_][A-Za-z0-9_-]*):\s*(?:#.*)?$/,
       )
 
       if (jobMatch) {
@@ -113,7 +113,7 @@ for (const file of workflowFiles) {
       const block = lines.slice(job.index + 1, nextIndex)
 
       const hasExecutionTarget = block.some((line) =>
-        /^    (runs-on|uses):/.test(line),
+        /^ {4}(runs-on|uses):/.test(line),
       )
 
       if (!hasExecutionTarget) {

@@ -182,3 +182,51 @@ Do not rebuild YAML job blocks with generic string operations such as
 If GitHub reports `Invalid workflow file` before any job starts, diagnose
 the workflow definition first. Do not troubleshoot Sonar, tests, Knip,
 JSCPD, or application code until the workflow itself validates.
+
+## ORBIS Admin strict first-day quality contract
+
+ORBIS Admin deliberately uses a stricter repository contract than the
+default SonarQube Cloud gate.
+
+For new application code:
+
+- runtime line coverage: 100%
+- runtime statement coverage: 100%
+- runtime function coverage: 100%
+- runtime branch coverage: 100%
+- Sonar new coverage when applicable: exactly 100%
+- JSCPD duplication: exactly 0.00%
+- Sonar new duplicated-lines density when applicable: exactly 0.00%
+- unresolved Sonar issues: 0
+- Security rating: A
+- Reliability rating: A
+- Maintainability rating: A
+- reviewed security hotspots: 100%
+
+Production/runtime coverage is automatically glob-based. Adding a new
+TypeScript/TSX runtime source file therefore adds it to the coverage
+denominator automatically; developers must add its tests rather than edit
+a hand-maintained file list.
+
+Tooling, CI definitions and configuration remain Sonar quality/security
+scanned, but they are not counted as application runtime coverage or
+runtime CPD. Tooling duplication is separately guarded by JSCPD.
+
+### Termux report delivery
+
+The ORBIS Admin repository uses a repository-local `post-push` hook.
+
+A push initiated from this Termux repository launches the CI watcher in
+the background and immediately returns the prompt. When GitHub Actions
+finishes, a timestamped `ORBIS-ADMIN-CI-SONAR-*.txt` report is written to
+Android Downloads.
+
+This hook is configured with repository-local `core.hooksPath`, so it does
+not modify ORBIS Foundation or any other repository.
+
+For a push made from another machine or directly on GitHub, Termux cannot
+receive a file unless a watcher is running locally. In that case run:
+
+`npm run ci:report`
+
+to fetch the current commit's report into Downloads.

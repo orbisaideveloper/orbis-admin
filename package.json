@@ -14,12 +14,13 @@
     "type-check": "tsc -p tsconfig.json --noEmit",
     "test:coverage": "vitest run --coverage",
     "check:deadcode:ci": "knip --config knip.json",
-    "check:duplicates:ci": "jscpd apps packages --config .jscpd.json",
+    "check:duplicates:ci": "jscpd apps packages scripts --config .jscpd.json",
     "build": "npm run build --workspace @orbis-admin/contracts && npm run build --workspace @orbis-admin/api && npm run build --workspace @orbis-admin/web",
     "test:smoke": "vitest run apps/api/src/index.test.ts",
     "dev:web": "npm run dev --workspace @orbis-admin/web",
     "dev:api": "npm run dev --workspace @orbis-admin/api",
-    "check:workflows": "node scripts/validate-workflows.mjs"
+    "check:workflows": "node scripts/validate-workflows.mjs",
+    "ci:report": "bash scripts/watch-ci-report.sh"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

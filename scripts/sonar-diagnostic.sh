@@ -6,6 +6,7 @@ MODE="${1:-}"
 VALUE="${2:-}"
 PROJECT_KEY="${SONAR_PROJECT_KEY:-orbisaideveloper_orbis-admin}"
 OUT_DIR="${SONAR_DIAG_DIR:-.sonar-diagnostics}"
+PAGE_SIZE="100"
 
 mkdir -p "$OUT_DIR"
 
@@ -42,6 +43,8 @@ api_get() {
     printf '{"diagnosticError":"API request failed: %s"}\n' \
       "$endpoint" > "$outfile"
   fi
+
+  return 0
 }
 
 if [[ "$MODE" == "pr" ]]; then
@@ -59,14 +62,14 @@ if [[ "$MODE" == "pr" ]]; then
     --data-urlencode "componentKeys=$PROJECT_KEY" \
     --data-urlencode "pullRequest=$VALUE" \
     --data-urlencode "resolved=false" \
-    --data-urlencode "ps=100"
+    --data-urlencode "ps=$PAGE_SIZE"
 
   api_get \
     "hotspots/search" \
     "$OUT_DIR/hotspots.json" \
     --data-urlencode "projectKey=$PROJECT_KEY" \
     --data-urlencode "pullRequest=$VALUE" \
-    --data-urlencode "ps=100"
+    --data-urlencode "ps=$PAGE_SIZE"
 else
   SCOPE_LABEL="branch ${VALUE}"
 
@@ -82,14 +85,14 @@ else
     --data-urlencode "componentKeys=$PROJECT_KEY" \
     --data-urlencode "branch=$VALUE" \
     --data-urlencode "resolved=false" \
-    --data-urlencode "ps=100"
+    --data-urlencode "ps=$PAGE_SIZE"
 
   api_get \
     "hotspots/search" \
     "$OUT_DIR/hotspots.json" \
     --data-urlencode "projectKey=$PROJECT_KEY" \
     --data-urlencode "branch=$VALUE" \
-    --data-urlencode "ps=100"
+    --data-urlencode "ps=$PAGE_SIZE"
 fi
 
 export SONAR_DIAG_SCOPE="$SCOPE_LABEL"

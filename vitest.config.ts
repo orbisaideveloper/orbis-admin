@@ -27,11 +27,14 @@ export default defineConfig({
       reporter: ['text', 'json-summary', 'lcov'],
       reportsDirectory: './coverage',
       include: [
-        'apps/web/src/App.tsx',
-        'apps/web/src/main.tsx',
-        'apps/web/src/model.ts',
-        'apps/api/src/index.ts',
-        'packages/contracts/src/health.ts',
+        'apps/web/src/**/*.{ts,tsx}',
+        'apps/api/src/**/*.ts',
+        'packages/contracts/src/**/*.ts',
+      ],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.d.ts',
+        'apps/web/src/test/**',
       ],
       thresholds: {
         lines: 100,
