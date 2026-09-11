@@ -2,6 +2,19 @@
 
 Use `AGENTS.md` as the master repository instruction and do not introduce guidance that conflicts with it.
 
+## Session start
+
+Before proposing or changing ORBIS Admin code/configuration, read:
+
+1. `AGENTS.md`
+2. `docs/PROJECT-STATE.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/DECISIONS.md`
+5. `docs/QUALITY-GATES.md`
+6. `docs/FIRST-APPLICATION-PLAN.md` while the first application scaffold is being planned or built
+
+`docs/PROJECT-STATE.md` is the canonical current-phase handoff, but live GitHub/Sonar/Render/database/deployment state must still be verified before mutations.
+
 Key rules:
 
 - ORBIS Admin is the central ORBIS identity and administrative control plane.
@@ -23,7 +36,7 @@ Key rules:
 - Add CI/Sonar/preview checks to the main-branch ruleset only after their exact GitHub check names exist reliably.
 - PR preview should precede merge for application changes once Render preview infrastructure is configured.
 - Production deploys should remain explicit/manual unless a later accepted architecture decision changes that policy.
-- Long-running Termux verification/audit/governance commands must save timestamped reports to `$HOME/storage/downloads/`.
-- Update architecture/decision documentation when durable system rules change.
+- Report-worthy Termux setup/verification/audit/governance commands must save timestamped reports to `$HOME/storage/downloads/` as defined in `AGENTS.md`.
+- Update architecture/decision documentation and `docs/PROJECT-STATE.md` when durable system rules or the current roadmap state change.
 
-When uncertain about system boundaries, consult `docs/ARCHITECTURE.md` and `docs/DECISIONS.md` before proposing implementation.
+When uncertain about current scope, read `docs/PROJECT-STATE.md` first. When uncertain about system boundaries, consult `docs/ARCHITECTURE.md` and `docs/DECISIONS.md` before proposing implementation.
