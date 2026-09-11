@@ -34,9 +34,11 @@ Products link back to the central ORBIS identity through the canonical ORBIS use
 
 **Status:** Accepted
 
-GitHub, Render, database-provider, and future infrastructure credentials must remain server-side and use the minimum permissions required.
+GitHub, Render, Sonar, database-provider, and future infrastructure credentials must remain server-side and use the minimum permissions required.
 
-Read-only observability and write/control actions should be treated as separate capabilities.
+Privileged provider/database calls must cross the Admin API/security boundary rather than being performed directly from browser/client code. Privileged secrets must never be shipped in the client bundle or rendered for convenience.
+
+Read-only observability and write/control actions are separate capabilities.
 
 ## ADR-005 — Administrative actions are auditable
 
@@ -86,13 +88,15 @@ Arbitrary branch pushes do not need to trigger Sonar analysis merely because the
 
 A Sonar status check is added to the main-branch ruleset only after its exact GitHub check name exists reliably on pull requests.
 
-## ADR-010 — Preview before merge; production remains explicit
+## ADR-010 — Staging review before merge; production remains explicit
 
 **Status:** Accepted
 
-Once Render preview infrastructure is configured, application pull requests are reviewed through a PR preview before merge.
+The current application review path uses the dedicated `staging` branch and independent `orbis-admin-staging` Render service.
 
-Preview environments must not receive production-destructive credentials or production write access by default.
+After GitHub/Sonar verification is green, the exact approved commit may be promoted to `staging`, deployed manually because Auto Deploy is OFF, and reviewed before merge. Staging must not receive production-destructive credentials or production write access by default.
+
+Ephemeral per-PR preview environments are optional future infrastructure rather than a current prerequisite.
 
 Production deployment remains an explicit/manual action after an approved merge unless a later accepted architecture decision deliberately changes that behavior.
 
@@ -153,15 +157,82 @@ Accepted interaction rules:
 
 The visual direction is the approved high-tech ORBIS control-room style: dark high-contrast base, crystal-bright surfaces, clean status color, compact cards, strong readability, and responsive layout.
 
+## ADR-014 — Canonical ORBIS-owned identifiers use UUIDv7
+
+**Status:** Accepted
+
+ORBIS-owned canonical internal IDs use UUIDv7 where a durable entity ID is required, including the direction for `orbis_user_id`, `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`.
+
+Canonical IDs are immutable and credential-independent. Human-readable display IDs are separate and non-authoritative. Provider-native IDs remain separate fields. Observability `trace_id` is separate from `orbis_action_id`.
+
+## ADR-015 — Permanent identity is independent from authentication credentials
+
+**Status:** Accepted
+
+`orbis_user_id` does not change when login methods or credentials change. Email, phone, password, passkey, recovery, device, and future federated credentials belong to the authentication layer.
+
+The architecture remains WebAuthn/passkey-ready, but passkey registration, credential creation, login UI, and production enablement are deferred to a dedicated authentication/security PR.
+
+## ADR-016 — Authorization uses scoped capabilities; roles are bundles
+
+**Status:** Accepted
+
+Authorization is capability-oriented. Roles may bundle capabilities, but sensitive code checks the required capability and relevant project/resource/environment scope rather than relying only on a broad role flag.
+
+## ADR-017 — Privileged actions cross a server-side policy/executor boundary
+
+**Status:** Accepted
+
+Privileged actions follow `UI -> API -> authentication -> authorization/policy -> risk/confirmation -> executor -> adapter -> provider/product -> result -> audit`. Browser/client code does not perform privileged external writes directly.
+
+## ADR-018 — Project registry and adapter boundaries drive ecosystem expansion
+
+**Status:** Accepted
+
+The project registry is a core domain and the long-term dashboard must not depend on a hard-coded project list. Provider/product-specific behavior is isolated behind small server-side integration boundaries when implemented. This does not require a premature generic framework.
+
+## ADR-019 — Read-only first and risk-classified administrative controls
+
+**Status:** Accepted
+
+Implementation proceeds from registry/status and read-only GitHub/Sonar/Render visibility to audit visibility, low-risk controls, production controls, and destructive/security/recovery controls last.
+
+Actions use four risk classes: read-only, low-risk mutation, production-impacting, and identity/security/destructive/recovery. Higher levels require progressively stronger authorization, confirmation, and audit evidence.
+
+## ADR-020 — Audit records and action correlation are first-class control-plane state
+
+**Status:** Accepted
+
+The initial audit model is append-only from the application perspective. Cryptographic immutability/tamper evidence must not be claimed until technically implemented and verified.
+
+Audit/action records include attributable actor/target/action/time/outcome context plus `orbis_action_id`. Observability `trace_id` is separate. Secrets never enter audit records.
+
+## ADR-021 — Control-plane APIs and shared contracts are versioned
+
+**Status:** Accepted
+
+Long-lived business/control-plane APIs use an explicit namespace such as `/api/v1/...`; `/health` may remain unversioned. Shared inter-product/provider contracts and event schemas carry explicit versions.
+
+## ADR-022 — Emergency write-disable controls precede privileged writes
+
+**Status:** Accepted
+
+Before the first provider/product write capability is enabled, server-side fail-closed controls must be able to disable global writes and narrower deploy/publish, identity, provider, or project write scopes while preserving read-only observability.
+
+## ADR-023 — Identity/control data requires tested backup and recovery before production criticality
+
+**Status:** Accepted
+
+Before central identity/control data becomes production-critical, define backup policy, restore verification, migration rollback/recovery, recovery ownership, RPO/RTO targets, and identity corruption/reconciliation strategy. Restore must be testable.
+
 ## Future decisions to formalize
 
-Before implementation reaches production, record explicit decisions for at least:
+Before the relevant production features are enabled, record explicit decisions for at least:
 
-- identity provider and authentication protocol,
-- exact canonical ID format and public display-ID rules,
-- authorization/role model,
-- audit-log retention,
-- inter-service API/event contracts,
-- staging vs production environment topology,
-- secret-management approach,
-- backup and disaster-recovery strategy.
+- exact identity provider and authentication protocol,
+- focused passkey/WebAuthn implementation and recovery UX,
+- audit retention/archival and any later tamper-evident mechanism,
+- exact production RPO/RTO values and DR runbook,
+- production environment topology and secret-management implementation,
+- mature observability/tracing standard,
+- SBOM/provenance/signing and dependency/license policy maturity.

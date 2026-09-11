@@ -138,6 +138,75 @@ Sensitive control-plane activity should be attributable. An audit record should 
 
 Audit logs should not store secrets.
 
+## Locked control-plane architecture extensions
+
+### Canonical ORBIS identifiers
+
+ORBIS-owned canonical internal identifiers use UUIDv7 where a durable entity identifier is required. The direction applies to `orbis_user_id`, `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`.
+
+These IDs are immutable and are not derived from mutable email, phone, username, device, password, or credential data. A separate opaque display reference such as `ORB-U-7K4M92QX` may be shown to people, but it is not the relational identity.
+
+Provider-native identities remain separate fields. GitHub repository identity, Render service ID, Sonar project key, and future provider IDs are not replaced by ORBIS UUIDs. Observability `trace_id` is also separate from `orbis_action_id`.
+
+### Identity is separate from authentication
+
+The permanent ORBIS identity survives authentication changes. Password, passkey/WebAuthn, recovery, device, or future federated credentials are credentials associated with `orbis_user_id`, not the identity itself.
+
+The architecture must remain passkey-ready, but passkey registration, credential creation, login UI, and production passkey enablement are explicitly deferred to a dedicated authentication/security PR.
+
+### Scoped capability authorization
+
+Roles are capability bundles, not the final authorization decision by themselves. Sensitive code checks the required capability plus relevant project/resource/environment scope.
+
+Example capabilities include `projects.read`, `projects.manage`, `users.read`, `identity.manage`, `deployments.read`, `deployments.execute`, `release.publish`, `release.rollback`, `integrations.manage`, and `audit.read`.
+
+### Privileged action boundary
+
+Privileged writes follow:
+
+`Admin UI -> Admin API -> authentication -> authorization/policy -> risk/confirmation -> action executor -> provider/product adapter -> provider/product -> normalized result -> audit/action record`
+
+The browser never performs privileged GitHub, Render, Sonar, database, identity, deploy, publish, rollback, or recovery writes directly.
+
+### Registry and adapter boundary
+
+The project registry is a core domain rather than a permanent hard-coded list. A registered project may carry ORBIS project ID, display name, repository/default branch, Render service/environment IDs, Sonar project identity, health endpoint, environments, supported capabilities, module/model catalog, and integration status.
+
+Provider/product-specific behavior should live behind small server-side boundaries when implemented, for example GitHub, Render, Sonar, product, and identity adapters. This does not require a large generic framework during the current delivery phase.
+
+### Read-only-first and risk levels
+
+Implementation order remains:
+
+`registry -> health/status -> GitHub read-only -> Sonar read-only -> Render read-only -> audit visibility -> low-risk controls -> publish/deploy -> rollback/destructive/security/recovery`
+
+Risk levels are:
+
+1. read-only,
+2. low-risk mutation,
+3. production-impacting,
+4. identity/security/destructive/recovery.
+
+Higher levels require progressively stronger capability, confirmation, re-authentication or equivalent strong confirmation where appropriate, and durable audit evidence. Dangerous buttons are not shipped before their security boundary exists.
+
+### Audit and correlation
+
+The first audit implementation is append-only from the application perspective and prevents ordinary application update/delete paths for audit history. Do not claim cryptographic immutability or tamper evidence until those guarantees are technically implemented and verified.
+
+Audit/action records should capture actor/permanent identity, timestamp, action, target, relevant previous/requested/result state, success/failure, source environment, confirmation context, and `orbis_action_id`. `trace_id` remains a separate observability concern. Audit logs never store privileged secrets.
+
+### Emergency write-disable controls
+
+Before the first provider/product write capability is enabled, the server must support fail-closed write disable controls for global external writes plus narrower deploy/publish, identity-mutation, provider, and project-integration scopes while keeping read-only observability available.
+
+### API and contract versioning
+
+Long-lived business/control-plane HTTP APIs use a versioned namespace such as `/api/v1/...`. The basic `/health` endpoint may remain unversioned. Shared inter-product/provider contracts and asynchronous event schemas carry explicit schema/contract versions.
+
+### Backup and recovery prerequisite
+
+Before central identity/control data becomes production-critical, define and verify backup policy, restore verification, migration rollback/recovery, recovery ownership, RPO/RTO targets, and identity corruption/reconciliation strategy. Backup existence alone is not enough; restore must be testable.
+
 ## Deployment model
 
 ORBIS Admin is deployed independently from every ORBIS product. A failure or deployment of ORBIS Admin should not inherently take down Foundation, Game, or future product services.
