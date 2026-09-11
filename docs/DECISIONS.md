@@ -110,6 +110,31 @@ Shared CLI installation or authentication does not make project configuration gl
 
 For ORBIS Admin operational work, verify the working repo is `~/orbis-admin` and the GitHub target is `orbisaideveloper/orbis-admin` before mutating project-level state.
 
+## ADR-012 — First application scaffold stack
+
+**Status:** Proposed — requires review before Step 4 implementation
+
+The first deployable ORBIS Admin application scaffold is proposed as a strict TypeScript npm workspace with:
+
+- `apps/web`: React + Vite administrative UI,
+- `apps/api`: Fastify HTTP API,
+- `packages/contracts`: shared typed request/response contracts,
+- strict TypeScript configuration,
+- Vitest-based tests and coverage,
+- ESLint, Knip, JSCPD, dependency audit, production build, smoke/startup verification, and Sonar analysis as required PR gates.
+
+The first runtime contract is a minimal non-secret `GET /health` endpoint plus a minimal accessible administrative shell. The first scaffold PR deliberately excludes database, authentication, ORBIS identity persistence, product integrations, and administrative write controls.
+
+Reasons for the proposal:
+
+- preserve a clear browser/server trust boundary,
+- keep privileged GitHub/Render/database credentials on the server,
+- establish shared API contracts before feature growth,
+- remain small enough to satisfy the repository's 100% first-code coverage policy,
+- produce deterministic build/start commands suitable for later Render deployment without coupling Step 3 planning to a live deployment.
+
+If this proposal is accepted, change the status to **Accepted** in the Step 3 planning PR before merge. If a different stack is chosen, update `docs/FIRST-APPLICATION-PLAN.md`, CI assumptions, and this ADR together so future sessions do not inherit contradictory guidance.
+
 ## Future decisions to formalize
 
 Before implementation reaches production, record explicit decisions for at least:
