@@ -9,15 +9,26 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom'
+import type {
+  ProjectRegistryProject,
+  ProjectRegistryResponse,
+} from '@orbis-admin/contracts'
+import {
+  loadProjectRegistry,
+  type RegistryLoader,
+} from './api/project-registry'
 import {
   aggregateTone,
   commandAreas,
   findCommandArea,
   findProject,
-  projects,
+  githubRepositoryUrl,
+  modulesLabel,
+  releaseLabel,
+  repositoryLabel,
   toneLabel,
+  usersLabel,
   type CommandArea,
-  type ProjectSummary,
   type StatusTone,
 } from './model'
 import './styles.css'
@@ -39,8 +50,41 @@ export const formatDateTime = (date: Date) => ({
   time: timeFormatter.format(date),
 })
 
+type RegistryState =
+  | { status: 'loading' }
+  | { status: 'ready'; data: ProjectRegistryResponse }
+  | { status: 'error'; message: string }
+
+export const registryErrorMessage = (reason: unknown) =>
+  reason instanceof Error ? reason.message : 'Unable to load project registry'
+
+export const useProjectRegistry = (
+  loader: RegistryLoader = loadProjectRegistry,
+): RegistryState => {
+  const [state, setState] = useState<RegistryState>({
+    status: 'loading',
+  })
+
+  useEffect(() => {
+    void loader().then(
+      (data) => setState({ status: 'ready', data }),
+      (reason: unknown) => {
+        setState({
+          status: 'error',
+          message: registryErrorMessage(reason),
+        })
+      },
+    )
+  }, [loader])
+
+  return state
+}
+
 const StatusDot = ({ tone }: { tone: StatusTone }) => (
-  <span className={`status-dot status-dot--${tone}`} aria-label={toneLabel(tone)} />
+  <span
+    className={`status-dot status-dot--${tone}`}
+    aria-label={toneLabel(tone)}
+  />
 )
 
 const AppHeader = () => {
@@ -97,14 +141,24 @@ const Shell = ({ children }: { children: ReactNode }) => (
   </div>
 )
 
-const PageNavigation = ({ title, eyebrow }: { title: string; eyebrow: string }) => {
+const PageNavigation = ({
+  title,
+  eyebrow,
+}: {
+  title: string
+  eyebrow: string
+}) => {
   const navigate = useNavigate()
   const location = useLocation()
 
   return (
     <div className="page-nav">
       <div className="page-nav-buttons">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Go back one screen">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label="Go back one screen"
+        >
           ← Back
         </button>
         <Link to="/">⌂ Home</Link>
@@ -119,22 +173,32 @@ const PageNavigation = ({ title, eyebrow }: { title: string; eyebrow: string }) 
 }
 
 const CommandCard = ({ area }: { area: CommandArea }) => (
-    <Link className={`command-card command-card--${area.tone}`} to={`/category/${area.id}`}>
-      <div className="command-card-topline">
-        <span>{area.eyebrow}</span>
-        <StatusDot tone={area.tone} />
-      </div>
-      <strong>{area.title}</strong>
-      <p>{area.summary}</p>
-      <div className="command-card-footer">
-        <span>{area.metric}</span>
-        <span aria-hidden="true">↗</span>
-      </div>
-    </Link>
+  <Link
+    className={`command-card command-card--${area.tone}`}
+    to={`/category/${area.id}`}
+  >
+    <div className="command-card-topline">
+      <span>{area.eyebrow}</span>
+      <StatusDot tone={area.tone} />
+    </div>
+    <strong>{area.title}</strong>
+    <p>{area.summary}</p>
+    <div className="command-card-footer">
+      <span>{area.metric}</span>
+      <span aria-hidden="true">↗</span>
+    </div>
+  </Link>
 )
 
-const HomePage = () => {
-  const projectTone = useMemo(() => aggregateTone(projects.map((project) => project.health)), [])
+const HomePage = ({
+  projects,
+}: {
+  projects: readonly ProjectRegistryProject[]
+}) => {
+  const projectTone = useMemo(
+    () => aggregateTone(projects.map((project) => project.signals.health)),
+    [projects],
+  )
 
   return (
     <Shell>
@@ -142,7 +206,10 @@ const HomePage = () => {
         <div>
           <span className="kicker">OWNER COMMAND CENTER</span>
           <h1>ORBIS Admin</h1>
-          <p>One control plane for every ORBIS project, quality signal and future identity.</p>
+          <p>
+            One control plane for every ORBIS project, quality signal and future
+            identity.
+          </p>
         </div>
         <div className="hero-status">
           <StatusDot tone={projectTone} />
@@ -155,7 +222,10 @@ const HomePage = () => {
           <div>
             <span className="kicker">PRIMARY ENTRY</span>
             <h2>Projects</h2>
-            <p>Open the registry, then drill into a project and its exact admin area.</p>
+            <p>
+              Open the registry, then drill into a project and its exact admin
+              area.
+            </p>
           </div>
           <div className="projects-primary-metrics">
             <strong>{projects.length}</strong>
@@ -165,42 +235,52 @@ const HomePage = () => {
       </section>
 
       <section className="command-grid" aria-label="ORBIS Admin command areas">
-        {commandAreas.filter((area) => area.id !== 'projects').map((area) => (
-          <CommandCard key={area.id} area={area} />
-        ))}
+        {commandAreas
+          .filter((area) => area.id !== 'projects')
+          .map((area) => (
+            <CommandCard key={area.id} area={area} />
+          ))}
       </section>
     </Shell>
   )
 }
 
-const ProjectCard = ({ project }: { project: ProjectSummary }) => (
+const ProjectCard = ({
+  project,
+}: {
+  project: ProjectRegistryProject
+}) => (
   <Link className="project-card" to={`/projects/${project.id}`}>
     <div className="project-card-heading">
       <div>
         <span className="kicker">{project.kind}</span>
         <h2>{project.name}</h2>
       </div>
-      <StatusDot tone={project.health} />
+      <StatusDot tone={project.signals.health} />
     </div>
     <dl>
       <div>
         <dt>Repository</dt>
-        <dd>{project.repository}</dd>
+        <dd>{repositoryLabel(project)}</dd>
       </div>
       <div>
         <dt>Environment</dt>
-        <dd>{project.environment}</dd>
+        <dd>{project.environment.label}</dd>
       </div>
       <div>
         <dt>Quality</dt>
-        <dd>{toneLabel(project.quality)}</dd>
+        <dd>{toneLabel(project.signals.quality)}</dd>
       </div>
     </dl>
     <span className="card-link">Open project admin →</span>
   </Link>
 )
 
-const ProjectsPage = () => (
+const ProjectsPage = ({
+  projects,
+}: {
+  projects: readonly ProjectRegistryProject[]
+}) => (
   <Shell>
     <PageNavigation title="Projects" eyebrow="Registry" />
     <section className="section-heading">
@@ -216,13 +296,28 @@ const ProjectsPage = () => (
   </Shell>
 )
 
-const projectAreas = ['modules', 'github', 'sonar', 'render', 'environments', 'users', 'health', 'activity']
+const projectAreas = [
+  'modules',
+  'github',
+  'sonar',
+  'render',
+  'environments',
+  'users',
+  'health',
+  'activity',
+]
 
-const ProjectPage = () => {
+const ProjectPage = ({
+  projects,
+}: {
+  projects: readonly ProjectRegistryProject[]
+}) => {
   const { projectId } = useParams<{ projectId: string }>()
-  const project = findProject(projectId!)
+  const project = findProject(projects, projectId!)
 
   if (!project) return <NotFoundPage />
+
+  const repositoryUrl = githubRepositoryUrl(project)
 
   return (
     <Shell>
@@ -231,27 +326,37 @@ const ProjectPage = () => {
         <div>
           <span className="kicker">{project.kind}</span>
           <h1>{project.name}</h1>
-          <p>{project.repository}</p>
+          <p>{repositoryLabel(project)}</p>
         </div>
         <div className="project-health-panel">
-          <StatusDot tone={project.health} />
-          <strong>{toneLabel(project.health)}</strong>
-          <span>{project.environment}</span>
+          <StatusDot tone={project.signals.health} />
+          <strong>{toneLabel(project.signals.health)}</strong>
+          <span>{project.environment.label}</span>
         </div>
       </section>
 
       <section className="summary-grid">
-        <SummaryTile label="Current" value={project.version} />
-        <SummaryTile label="Published" value={project.publishedVersion} />
-        <SummaryTile label="Modules" value={String(project.modules)} />
-        <SummaryTile label="Users" value={project.users} />
+        <SummaryTile
+          label="Current"
+          value={releaseLabel(project.release.current)}
+        />
+        <SummaryTile
+          label="Published"
+          value={releaseLabel(project.release.published)}
+        />
+        <SummaryTile label="Modules" value={modulesLabel(project.modules)} />
+        <SummaryTile label="Users" value={usersLabel(project)} />
       </section>
 
       <section className="command-grid command-grid--project">
         {projectAreas.map((areaId) => {
           const area = findCommandArea(areaId)!
           return (
-            <Link className="command-card" key={area.id} to={`/detail/${area.id}/${project.id}`}>
+            <Link
+              className="command-card"
+              key={area.id}
+              to={`/detail/${area.id}/${project.id}`}
+            >
               <div className="command-card-topline">
                 <span>{area.eyebrow}</span>
                 <StatusDot tone={area.tone} />
@@ -267,8 +372,13 @@ const ProjectPage = () => {
         })}
       </section>
 
-      {project.githubUrl ? (
-        <a className="provider-link" href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+      {repositoryUrl ? (
+        <a
+          className="provider-link"
+          href={repositoryUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Open in GitHub ↗
         </a>
       ) : null}
@@ -276,14 +386,24 @@ const ProjectPage = () => {
   )
 }
 
-const SummaryTile = ({ label, value }: { label: string; value: string }) => (
+const SummaryTile = ({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) => (
   <div className="summary-tile">
     <span>{label}</span>
     <strong>{value}</strong>
   </div>
 )
 
-const CategoryPage = () => {
+const CategoryPage = ({
+  projects,
+}: {
+  projects: readonly ProjectRegistryProject[]
+}) => {
   const { categoryId } = useParams<{ categoryId: string }>()
   const area = findCommandArea(categoryId!)
 
@@ -300,16 +420,22 @@ const CategoryPage = () => {
 
       <section className="project-grid">
         {projects.map((project) => (
-          <Link className="project-card" key={project.id} to={`/detail/${area.id}/${project.id}`}>
+          <Link
+            className="project-card"
+            key={project.id}
+            to={`/detail/${area.id}/${project.id}`}
+          >
             <div className="project-card-heading">
               <div>
                 <span className="kicker">{project.kind}</span>
                 <h2>{project.name}</h2>
               </div>
-              <StatusDot tone={project.quality} />
+              <StatusDot tone={project.signals.quality} />
             </div>
-            <p>{project.repository}</p>
-            <span className="card-link">Open {area.title} detail →</span>
+            <p>{repositoryLabel(project)}</p>
+            <span className="card-link">
+              Open {area.title} detail →
+            </span>
           </Link>
         ))}
       </section>
@@ -317,7 +443,8 @@ const CategoryPage = () => {
   )
 }
 
-export const copyText = async (value: string) => navigator.clipboard.writeText(value)
+export const copyText = async (value: string) =>
+  navigator.clipboard.writeText(value)
 
 const CopyButton = ({ value }: { value: string }) => {
   const [copied, setCopied] = useState(false)
@@ -334,18 +461,32 @@ const CopyButton = ({ value }: { value: string }) => {
   )
 }
 
-const DetailPage = () => {
-  const { categoryId, projectId } = useParams<{ categoryId: string; projectId: string }>()
+const DetailPage = ({
+  projects,
+}: {
+  projects: readonly ProjectRegistryProject[]
+}) => {
+  const { categoryId, projectId } = useParams<{
+    categoryId: string
+    projectId: string
+  }>()
   const area = findCommandArea(categoryId!)
-  const project = findProject(projectId!)
+  const project = findProject(projects, projectId!)
 
   if (!area || !project) return <NotFoundPage />
 
-  const diagnostic = `${project.name} — ${area.title}; repository=${project.repository}; environment=${project.environment}; quality=${toneLabel(project.quality)}`
+  const diagnostic =
+    `${project.name} — ${area.title}; ` +
+    `repository=${repositoryLabel(project)}; ` +
+    `environment=${project.environment.label}; ` +
+    `quality=${toneLabel(project.signals.quality)}`
 
   return (
     <Shell>
-      <PageNavigation title={`${project.name} / ${area.title}`} eyebrow="Detail" />
+      <PageNavigation
+        title={`${project.name} / ${area.title}`}
+        eyebrow="Detail"
+      />
       <section className="detail-panel">
         <div className="detail-title-row">
           <div>
@@ -353,27 +494,55 @@ const DetailPage = () => {
             <h1>{area.title}</h1>
             <p>{project.name}</p>
           </div>
-          <StatusDot tone={project.quality} />
+          <StatusDot tone={project.signals.quality} />
         </div>
 
         <div className="detail-list">
-          <DetailValue label="Repository" value={project.repository} copyable />
-          <DetailValue label="Environment" value={project.environment} />
-          <DetailValue label="Current version" value={project.version} />
-          <DetailValue label="Quality" value={toneLabel(project.quality)} />
-          <DetailValue label="AI-ready diagnostic brief" value={diagnostic} copyable />
+          <DetailValue
+            label="Repository"
+            value={repositoryLabel(project)}
+            copyable
+          />
+          <DetailValue
+            label="Environment"
+            value={project.environment.label}
+          />
+          <DetailValue
+            label="Current version"
+            value={releaseLabel(project.release.current)}
+          />
+          <DetailValue
+            label="Quality"
+            value={toneLabel(project.signals.quality)}
+          />
+          <DetailValue
+            label="AI-ready diagnostic brief"
+            value={diagnostic}
+            copyable
+          />
         </div>
 
         <div className="notice">
           <strong>V1 safety boundary</strong>
-          <span>Read-only demo structure. No deploy, publish, rollback, customer write or secret action is connected.</span>
+          <span>
+            Read-only normalized registry data. No deploy, publish, rollback,
+            customer write or secret action is connected.
+          </span>
         </div>
       </section>
     </Shell>
   )
 }
 
-const DetailValue = ({ label, value, copyable = false }: { label: string; value: string; copyable?: boolean }) => (
+const DetailValue = ({
+  label,
+  value,
+  copyable = false,
+}: {
+  label: string
+  value: string
+  copyable?: boolean
+}) => (
   <div className="detail-value">
     <div>
       <span>{label}</span>
@@ -383,32 +552,88 @@ const DetailValue = ({ label, value, copyable = false }: { label: string; value:
   </div>
 )
 
+const RegistryLoadingPage = () => (
+  <Shell>
+    <section className="empty-state">
+      <span className="kicker">REGISTRY</span>
+      <h1>Loading project registry</h1>
+      <p>Reading the canonical ORBIS Admin project model.</p>
+    </section>
+  </Shell>
+)
+
+const RegistryErrorPage = ({ message }: { message: string }) => (
+  <Shell>
+    <section className="empty-state">
+      <span className="kicker">REGISTRY ERROR</span>
+      <h1>Project registry unavailable</h1>
+      <p>{message}</p>
+    </section>
+  </Shell>
+)
+
 const NotFoundPage = () => (
   <Shell>
     <PageNavigation title="Not Found" eyebrow="Navigation" />
     <section className="empty-state">
       <span className="kicker">404</span>
       <h1>Admin view not found</h1>
-      <p>The requested demo route is not registered.</p>
+      <p>The requested route or registry record is not available.</p>
       <Link to="/">Return Home</Link>
     </section>
   </Shell>
 )
 
-const AdminRoutes = () => (
-  <Routes>
-    <Route path="/" element={<HomePage />} />
-    <Route path="/projects" element={<ProjectsPage />} />
-    <Route path="/projects/:projectId" element={<ProjectPage />} />
-    <Route path="/category/:categoryId" element={<CategoryPage />} />
-    <Route path="/detail/:categoryId/:projectId" element={<DetailPage />} />
-    <Route path="*" element={<NotFoundPage />} />
-  </Routes>
-)
+const AdminRoutes = ({
+  registryLoader,
+}: {
+  registryLoader?: RegistryLoader
+}) => {
+  const registry = useProjectRegistry(registryLoader)
 
-export const TestRouter = ({ initialEntries }: { initialEntries: string[] }) => (
+  if (registry.status === 'loading') {
+    return <RegistryLoadingPage />
+  }
+
+  if (registry.status === 'error') {
+    return <RegistryErrorPage message={registry.message} />
+  }
+
+  const projects = registry.data.projects
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage projects={projects} />} />
+      <Route
+        path="/projects"
+        element={<ProjectsPage projects={projects} />}
+      />
+      <Route
+        path="/projects/:projectId"
+        element={<ProjectPage projects={projects} />}
+      />
+      <Route
+        path="/category/:categoryId"
+        element={<CategoryPage projects={projects} />}
+      />
+      <Route
+        path="/detail/:categoryId/:projectId"
+        element={<DetailPage projects={projects} />}
+      />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  )
+}
+
+export const TestRouter = ({
+  initialEntries,
+  registryLoader,
+}: {
+  initialEntries: string[]
+  registryLoader?: RegistryLoader
+}) => (
   <MemoryRouter initialEntries={initialEntries}>
-    <AdminRoutes />
+    <AdminRoutes registryLoader={registryLoader} />
   </MemoryRouter>
 )
 

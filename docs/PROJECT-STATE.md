@@ -26,7 +26,7 @@ Do not rely on this file alone for live external state. Before a mutating GitHub
 - Default/protected branch: `main`
 - ORBIS Admin work must not modify another ORBIS repository unless the user explicitly asks for that repository in the current task.
 
-## Verified baseline after PR #4
+## Verified baseline after PR #5
 
 PR #4, `feat: add first ORBIS Admin V1 application scaffold`, is merged.
 
@@ -34,11 +34,19 @@ Verified PR head:
 
 `69883eeaf22e43bdb1aafcf54dddec6cfad51403`
 
-Verified merge commit on `main`:
+Verified PR #4 merge commit:
 
 `0690ff6421130b13b0da2e49e90dc7aef64efb97`
 
-The merged scaffold provides the first deployable responsive owner/admin command-center shell, project/category/detail navigation, safe Copy controls, demo/read-only operational data, Fastify `/health`, shared contracts, and strict application tooling.
+Verified PR #5 architecture-lock head:
+
+`f425ea876ddcb01256a9ecb6b3fd5f4038d2d9bf`
+
+Verified current `main` after PR #5:
+
+`ca4a30a7d3537a5665cfab7e040da01fb2d5f224`
+
+The merged baseline provides the responsive owner/admin command-center shell, project/category/detail navigation, safe Copy controls, Fastify `/health`, shared contracts, strict application tooling, and the accepted control-plane architecture lock.
 
 ### GitHub governance and CI
 
@@ -56,7 +64,7 @@ The authoritative staging service is `orbis-admin-staging` for repository `orbis
 
 Staging URL: `https://orbis-admin-staging.onrender.com`
 
-The latest reviewed staging artifact was built from approved PR head `69883eeaf22e43bdb1aafcf54dddec6cfad51403`. The public mobile staging UI was reviewed successfully.
+The latest reviewed staging artifact is the architecture-lock commit `f425ea876ddcb01256a9ecb6b3fd5f4038d2d9bf`. The public mobile staging UI was reviewed successfully. The service still uses the earlier Vite-preview build/start commands until the Project Registry / Fastify runtime PR is approved for staging.
 
 Current accepted pre-merge flow is:
 
@@ -77,7 +85,7 @@ Ephemeral per-PR Render previews are not currently required. Production Admin Re
 
 ### Known immediate V1 limitations
 
-The current shell still uses static/demo provider state. GitHub and Sonar provider links inside detail views need to open their real destinations, provider-specific detail layouts still need real read-only metadata, and demo labels such as `First scan pending` / `Setup later` must later be replaced by live provider status. These are follow-up items, not retroactive blockers for the merged scaffold.
+The current `main` shell still contains static/demo operational state. The in-progress Project Registry branch moves canonical project records to the API, makes the web consume `/api/v1/projects`, and adds a tested same-origin Fastify + React runtime. Live GitHub, Render, Sonar, and product-health adapters are still intentionally not implemented, so provider signals must remain `unknown` until a real adapter supplies validated data.
 
 ## Confirmed product vision
 
@@ -138,22 +146,34 @@ PR #4 is merged and the first V1 owner/admin shell is deployable.
 
 The dedicated `staging` branch and `orbis-admin-staging` manual Render service exist and have been used for pre-merge review.
 
-Keep Step 5 narrow: document/verify the staging workflow, fix safe provider links/details, keep provider metadata registry-shaped, and verify staging smoke behavior. Do not pull authentication, central identity DB implementation, or privileged write controls into Step 5. Production service/setup remains explicit and deferred until separately approved.
+Current Step 5 delivery slice is the Project Registry + Real Read Model foundation:
 
-## What comes after Step 5
+1. shared provider-neutral Project Registry contracts,
+2. canonical API-side registry,
+3. `GET /api/v1/projects`,
+4. web reads the registry through the API,
+5. same-origin Fastify runtime serves the API and built React application,
+6. staging validates the exact approved commit,
+7. then read-only providers are added one at a time: GitHub -> Render -> Sonar -> Health -> unified status/alerts.
+
+Do not pull central identity DB implementation, authentication rewrite, Python, or privileged write controls into this slice. Production service/setup remains explicit and deferred until separately approved.
+
+## What comes after the current Step 5 foundation
 
 Implementation proceeds in deliberate phases:
 
-- **Auth / Identity:** dedicated Admin DB, UUIDv7 identities, opaque display IDs, authentication/session contract, memberships/entitlements, scoped capability model, backup/restore baseline. Passkey implementation remains deferred to a focused security PR.
-- **Registry / Read-only integrations:** database-backed project registry, GitHub/Sonar/Render read-only integration, health aggregation, provider/product adapters as needed, audit visibility.
+- **Read-only integrations first:** GitHub -> Render -> Sonar -> Health -> unified project status/alerts, with runtime validation and provider normalization at every external boundary.
+- **Server-state/observability as the read plane grows:** TanStack Query when live server data needs caching/refetch behavior; structured server instrumentation and later OpenTelemetry; stable OpenAPI contracts when the API surface warrants it.
+- **Admin DB / ORBIS Identity:** dedicated Admin DB, UUIDv7 identities, opaque display IDs, memberships, integration metadata and control-plane configuration. Product business data stays in product databases.
+- **Authentication / Authorization:** central login/session, scoped capabilities, roles as capability bundles, server-side authorization and append-only audit baseline. Passkey implementation remains a later focused security phase.
 - **Controlled actions:** only after read-only/audit boundaries are proven; low-risk mutations first, production publish/deploy later, destructive/security/recovery controls last, with emergency write-disable controls in place.
 - **Enterprise hardening:** tamper-evident audit when technically justified, formal metrics/traces, DR drills/RPO/RTO, SBOM/provenance/signing, dependency/license maturity, mature passkey/re-auth flows.
 
 ## Current exact next action
 
-Create and review a documentation-only architecture-lock PR that updates `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and this file. It must not change application code, database schema, authentication, provider integration, or write controls.
+Finish the Project Registry / Real Read Model PR from `feat/project-registry-read-model`, get GitHub/Sonar CI green, promote that exact approved commit to the `staging` branch, change the existing `orbis-admin-staging` Render service from Vite preview to the tested root build + Fastify start commands, and run live same-origin smoke checks for `/`, `/health`, `/api/v1/projects`, a deep React route, and a built asset.
 
-After that documentation PR is accepted, continue Step 5 with the small provider-link/detail and staging-delivery work.
+After staging is accepted, continue with the first real read-only provider adapter: GitHub.
 
 ## Handoff/update discipline
 

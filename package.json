@@ -20,7 +20,8 @@
     "dev:web": "npm run dev --workspace @orbis-admin/web",
     "dev:api": "npm run dev --workspace @orbis-admin/api",
     "check:workflows": "node scripts/validate-workflows.mjs",
-    "ci:report": "bash scripts/watch-ci-report.sh"
+    "ci:report": "bash scripts/watch-ci-report.sh",
+    "start": "npm run start --workspace @orbis-admin/api"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
