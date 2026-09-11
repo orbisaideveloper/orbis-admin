@@ -5,7 +5,20 @@ on:
     branches:
       - main
     types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - main
+
   workflow_dispatch:
+    inputs:
+      analysis_mode:
+        description: Analysis mode
+        required: false
+        default: normal
+        type: choice
+        options:
+          - normal
+          - main-baseline
 
 permissions:
   contents: read
@@ -16,6 +29,7 @@ concurrency:
 
 jobs:
   quality:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.analysis_mode == 'main-baseline') }}
     name: Build, Test & Safety Audit
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -253,3 +267,33 @@ jobs:
           echo "ORBIS Admin currently contains governance/documentation only."
           echo "Repository, Sonar-project isolation, and sensitive-file guards passed."
           echo "The first application-code PR will automatically activate the full quality gate."
+
+  sonar-main-baseline:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.analysis_mode == 'main-baseline' }}
+    name: Sonar Main Baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify Sonar Project
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fxq 'sonar.projectKey=orbisaideveloper_orbis-admin' sonar-project.properties
+          grep -Fxq 'sonar.organization=orbis' sonar-project.properties
+          grep -Fxq 'sonar.projectName=orbis-admin' sonar-project.properties
+          echo "ORBIS Admin Sonar identity: PASS"
+
+      - name: SonarQube Cloud — Main Baseline
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.branch.name=main
