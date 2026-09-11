@@ -1,23 +1,23 @@
 # ORBIS Admin — First Application Plan
 
-**Status:** Step 3 planning document
+**Status:** Approved Step 3 plan for Step 4 implementation
 
 This document freezes the intended scope and acceptance criteria for the first ORBIS Admin application scaffold before production application code is added.
 
 ## Goal
 
-Create the smallest deployable application foundation that proves the ORBIS Admin delivery path end to end without prematurely implementing identity, database, authentication, product integrations, or operational write controls.
+Create the smallest deployable application foundation that proves the ORBIS Admin delivery path end to end without prematurely implementing identity, database, authentication, live product integrations, or operational write controls.
 
-The first application PR is infrastructure/application-foundation work, not feature delivery.
+The first application PR is application-foundation work, not full feature delivery.
 
-## Proposed initial stack
+## Accepted initial stack
 
-The first scaffold should use a strict TypeScript workspace with these boundaries:
+The first scaffold uses a strict TypeScript workspace with these boundaries:
 
 ```text
 orbis-admin/
 ├── apps/
-│   ├── web/          # React + Vite administrative UI
+│   ├── web/          # React + Vite owner/admin UI
 │   └── api/          # Fastify HTTP API
 ├── packages/
 │   └── contracts/    # shared typed request/response schemas
@@ -32,7 +32,8 @@ orbis-admin/
 - React
 - Vite
 - TypeScript with strict settings
-- minimal accessible shell only
+- approved ORBIS owner/admin command-center shell
+- responsive mobile and desktop compositions
 - no authentication implementation yet
 - no production secrets in browser code
 
@@ -43,7 +44,7 @@ orbis-admin/
 - `/health` endpoint as the first runtime contract
 - structured, deterministic startup behavior
 - no database connection yet
-- no GitHub/Render write integration yet
+- no GitHub/Sonar/Render write integration yet
 
 ### Shared contracts
 
@@ -57,18 +58,23 @@ The first application-code PR should contain only enough code and configuration 
 
 1. root npm workspace/package configuration,
 2. strict TypeScript base configuration,
-3. minimal React/Vite Admin shell,
-4. minimal Fastify API with `/health`,
-5. shared health-response contract,
-6. unit/component/API tests required for 100% coverage,
-7. ESLint configuration with zero-warning CI behavior,
-8. Vitest coverage configuration,
-9. Knip configuration,
-10. JSCPD configuration that fails on accepted authored-code duplication,
-11. build scripts for all workspaces,
-12. a smoke/startup verification script suitable for CI and later Render health checks,
-13. Sonar source/test/coverage paths updated to the real application layout,
-14. documentation/state updates required by the repository instructions.
+3. React/Vite Admin shell matching the approved V1 direction,
+4. compact command-center cards with responsive mobile/desktop layouts,
+5. drill-down routes for the approved safe demo/read-only flow,
+6. reliable Back + Home + browser/device Back behavior,
+7. safe non-secret Copy controls,
+8. three-dot menu and date/time header,
+9. minimal Fastify API with `/health`,
+10. shared health-response contract,
+11. unit/component/API tests required for 100% coverage,
+12. ESLint configuration with zero-warning CI behavior,
+13. Vitest coverage configuration,
+14. Knip configuration,
+15. JSCPD configuration that fails on accepted authored-code duplication,
+16. build scripts for all workspaces,
+17. a smoke/startup verification script suitable for CI and later Render health checks,
+18. Sonar source/test/coverage paths updated to the real application layout,
+19. documentation/state updates required by the repository instructions.
 
 ## Explicitly out of scope for the first scaffold PR
 
@@ -80,10 +86,11 @@ Do **not** add these merely to make the scaffold feel complete:
 - ORBIS SSO/OIDC implementation,
 - central ORBIS user table,
 - role/permission persistence,
-- Foundation/Game integration,
-- GitHub/Render administrative write actions,
+- live Foundation/Game integration,
+- GitHub/Sonar/Render administrative write actions,
 - production/staging secrets,
-- business dashboards or product modules.
+- real publish/deploy/rollback controls,
+- real customer records.
 
 These require separate architecture decisions and focused PRs after the runtime/delivery foundation is proven.
 
@@ -112,7 +119,11 @@ Required:
 
 - API health behavior tested,
 - shared contract behavior tested where runtime logic exists,
-- web shell/component behavior tested,
+- web shell/navigation behavior tested,
+- Back/Home/browser-history behavior tested,
+- responsive layout behavior covered at the component/logic level where practical,
+- Copy-control behavior tested,
+- aggregate health-card state behavior tested,
 - 100% aggregate lines coverage,
 - 100% aggregate statements coverage,
 - 100% aggregate functions coverage,
@@ -165,12 +176,17 @@ The scaffold must nevertheless be designed so its build/start commands are deter
 
 Production auto-deploy must not be enabled merely for convenience; production deployment remains explicit/manual under the accepted repository policy.
 
-## Proposed first-PR acceptance checklist
+## First-PR acceptance checklist
 
 The first application scaffold is not ready to merge until all applicable items pass:
 
 - application scope matches this plan,
-- no database/auth/product features slipped into the scaffold,
+- mobile first-view layout matches the approved compact command-board direction,
+- desktop layout intentionally uses larger available space without forking business behavior,
+- no redundant Home `Command Center` heading/breadcrumb duplication,
+- Projects primary card remains compact enough to preserve dashboard glanceability,
+- Back/Home/browser-history behavior works correctly,
+- no database/auth/live product-write features slipped into the scaffold,
 - deterministic `npm ci`,
 - lint zero warnings,
 - TypeScript zero errors,
@@ -193,13 +209,12 @@ The first application scaffold is not ready to merge until all applicable items 
 
 ## Step 3 completion criteria
 
-Step 3 is complete when:
+Step 3 planning is accepted. Delivery is complete only when:
 
-1. this plan has been reviewed and accepted,
-2. any durable stack decision is recorded in `docs/DECISIONS.md`,
-3. `docs/PROJECT-STATE.md` points to the accepted exact next action,
-4. the planning PR itself passes the governance-only required CI check,
-5. the planning PR is manually merged,
-6. local `main` is synced again.
+1. this accepted plan and the accepted ADRs are present in the planning PR,
+2. `docs/PROJECT-STATE.md` points to the exact next action,
+3. the planning PR passes the governance-only required CI check,
+4. the planning PR is manually merged after explicit merge acceptance,
+5. local `main` is synced again.
 
 Only then begin Step 4 on a new feature branch.
