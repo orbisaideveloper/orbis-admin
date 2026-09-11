@@ -268,7 +268,7 @@ const ProjectPage = () => {
       </section>
 
       {project.githubUrl ? (
-        <a className="provider-link" href={project.githubUrl} target="_blank" rel="noreferrer">
+        <a className="provider-link" href={project.githubUrl} target="_blank" rel="noopener noreferrer">
           Open in GitHub ↗
         </a>
       ) : null}
