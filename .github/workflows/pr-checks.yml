@@ -58,6 +58,8 @@ jobs:
             .github/copilot-instructions.md
             .github/pull_request_template.md
             .github/workflows/pr-checks.yml
+            docs/SONAR-RUNBOOK.md
+            scripts/sonar-diagnostic.sh
           )
 
           for file in "${required_files[@]}"; do
@@ -261,6 +263,20 @@ jobs:
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=300
 
+
+      - name: SonarQube Cloud — Explain Quality Gate
+        if: always() && steps.detect.outputs.has_code == 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            bash scripts/sonar-diagnostic.sh               pr "${{ github.event.pull_request.number }}"
+          else
+            bash scripts/sonar-diagnostic.sh               branch "${{ github.ref_name }}"
+          fi
+
       - name: Governance-Only Result
         if: steps.detect.outputs.has_code == 'false'
         run: |
@@ -268,11 +284,11 @@ jobs:
           echo "Repository, Sonar-project isolation, and sensitive-file guards passed."
           echo "The first application-code PR will automatically activate the full quality gate."
 
-  sonar-main-baseline:
+sonar-main-baseline:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.analysis_mode == 'main-baseline' }}
     name: Sonar Main Baseline
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Main
@@ -285,10 +301,84 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fxq 'sonar.projectKey=orbisaideveloper_orbis-admin' sonar-project.properties
-          grep -Fxq 'sonar.organization=orbis' sonar-project.properties
-          grep -Fxq 'sonar.projectName=orbis-admin' sonar-project.properties
+
+          grep -Fxq \
+            'sonar.projectKey=orbisaideveloper_orbis-admin' \
+            sonar-project.properties
+
+          grep -Fxq \
+            'sonar.organization=orbis' \
+            sonar-project.properties
+
+          grep -Fxq \
+            'sonar.projectName=orbis-admin' \
+            sonar-project.properties
+
+          test -s scripts/sonar-diagnostic.sh
+          test -s docs/SONAR-RUNBOOK.md
+
           echo "ORBIS Admin Sonar identity: PASS"
+
+      - name: Detect Main Application Code
+        id: main_detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          code_file="$(
+            find . -type f \
+              \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.mjs' -o -name '*.cjs' \) \
+              -not -path './.git/*' \
+              -not -path './.github/*' \
+              -not -path './node_modules/*' \
+              -print -quit
+          )"
+
+          if [[ -s package.json && -s package-lock.json && -n "$code_file" ]]; then
+            echo "has_code=true" >> "$GITHUB_OUTPUT"
+            echo "Main contains application code; coverage will be generated."
+          else
+            echo "has_code=false" >> "$GITHUB_OUTPUT"
+            echo "Main is governance-only; baseline scan will run without LCOV."
+          fi
+
+      - name: Setup Node.js
+        if: steps.main_detect.outputs.has_code == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install Dependencies
+        if: steps.main_detect.outputs.has_code == 'true'
+        run: npm ci
+
+      - name: Generate Main Coverage
+        if: steps.main_detect.outputs.has_code == 'true'
+        run: npm run test:coverage
+
+      - name: Verify Main Coverage Artifact
+        if: steps.main_detect.outputs.has_code == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s coverage/lcov.info
+          test -s coverage/coverage-summary.json
+          echo "Main coverage artifacts: PASS"
+
+      - name: Require SonarQube Cloud Token
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${SONAR_TOKEN:-}" ]]; then
+            echo "ERROR: GitHub Actions secret SONAR_TOKEN is required."
+            exit 1
+          fi
+
+          echo "SonarQube Cloud token is configured."
 
       - name: SonarQube Cloud — Main Baseline
         uses: SonarSource/sonarqube-scan-action@v8.2.1
@@ -297,3 +387,14 @@ jobs:
         with:
           args: >
             -Dsonar.branch.name=main
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
+
+      - name: SonarQube Cloud — Explain Main Result
+        if: always()
+        continue-on-error: true
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          bash scripts/sonar-diagnostic.sh branch main

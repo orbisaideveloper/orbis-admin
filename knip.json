@@ -1,8 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "ignore": [
-    ".orbis-backup/**"
-  ],
   "ignoreDependencies": [
     "jsdom"
   ],

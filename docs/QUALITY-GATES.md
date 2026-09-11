@@ -35,17 +35,19 @@ ORBIS Admin now has an external SonarQube Cloud project and repository secret co
 
 The repository contains `sonar-project.properties` with this exact project identity. CI validates the identity before any scan so ORBIS Admin cannot accidentally analyze Foundation, ORBIS, or another Sonar project.
 
-The intended policy is:
+The permanent analysis policy is:
 
-- pull-request-centered analysis,
+- pull-request analysis for every PR targeting `main`,
+- automatic `main` analysis after pushes to `main`,
+- an explicit manual `main-baseline` recovery/bootstrap mode,
 - no unresolved new issues on changed/new code,
 - coverage imported from `coverage/lcov.info`,
 - quality gate must pass before merge,
-- avoid unnecessary scans on arbitrary branch pushes when quota conservation matters.
+- automatic authenticated diagnostics when the Sonar gate fails.
 
 `SONAR_TOKEN` must remain stored as a GitHub Actions secret. It must never be committed to the repository, copied into reports, or written to shell-history/config files as plain text.
 
-The repository is still governance/documentation-only, so the workflow deliberately does not perform a Sonar analysis yet. The first application-code PR automatically activates token validation, coverage generation/import, the Sonar scan, and waiting for the Sonar quality-gate result.
+Application code is now present. The full quality workflow is active. GitHub Actions is the canonical owner of `SONAR_TOKEN`; local Termux/proot environments are not required to hold a Sonar token. Pull-request scans, automatic `main` scans, the manual baseline path, and failure diagnostics are defined in `docs/SONAR-RUNBOOK.md`.
 
 Any project-level Sonar Quality Gate settings that are not analysis properties must be configured and verified in SonarQube Cloud itself before they are claimed as enforced. Do not encode unverified server-side Quality Gate behavior as a repository analysis property.
 
@@ -81,7 +83,7 @@ Sonar and Render preview checks should be added separately only after their exac
 
 ## Render preview
 
-Render PR Preview is a deployment/review gate, not a replacement for code-quality gates. ORBIS Admin does not yet contain deployable application code, so a Render service/preview is intentionally deferred until the first application scaffold exists. When configured, preview credentials must not provide destructive production access by default.
+Render PR Preview is a deployment/review gate, not a replacement for code-quality gates. ORBIS Admin now contains its first deployable application scaffold. A Render service/PR Preview remains a separate deployment setup step and must not replace the code-quality gate. When configured, preview credentials must not provide destructive production access by default.
 
 ## Local development
 
