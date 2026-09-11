@@ -1,0 +1,13 @@
+{
+  "threshold": 0,
+  "reporters": ["console"],
+  "format": ["typescript", "tsx", "javascript"],
+  "minLines": 8,
+  "minTokens": 70,
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/dist/**",
+    "**/coverage/**"
+  ]
+}

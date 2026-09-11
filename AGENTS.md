@@ -240,3 +240,15 @@ A change is not complete merely because code compiles. Completion should include
 - successful required CI/quality/preview checks,
 - explicit/manual merge acceptance,
 - a preserved timestamped Downloads report for every report-worthy Termux command or command block used as implementation, setup, diagnostic, audit, or verification evidence.
+
+## GitHub workflow editing safety
+
+Before committing or pushing any change under `.github/workflows/`, run
+`npm run check:workflows`.
+
+An `Invalid workflow file` error is a workflow-definition failure and must
+be resolved before investigating downstream tests, Sonar, Render, Knip,
+JSCPD, or application behavior.
+
+Never rely on `git diff --check` alone as workflow validation. Preserve
+YAML indentation exactly when generating or rewriting job blocks.
