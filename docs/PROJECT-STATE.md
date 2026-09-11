@@ -10,10 +10,12 @@ Before proposing or performing ORBIS Admin work, read these files in this order:
 
 1. `AGENTS.md` — permanent operating rules.
 2. `docs/PROJECT-STATE.md` — current phase, completed work, and exact next step.
-3. `docs/ARCHITECTURE.md` — system boundaries.
-4. `docs/DECISIONS.md` — durable architecture decisions.
-5. `docs/QUALITY-GATES.md` — CI, coverage, Sonar, and preview requirements.
-6. `docs/FIRST-APPLICATION-PLAN.md` — current Step 3/Step 4 implementation plan while the first application scaffold is being prepared.
+3. `docs/CONTROL-PLANE-VISION.md` — intended end-state of the owner control center and central ORBIS identity registry.
+4. `docs/ARCHITECTURE.md` — system boundaries.
+5. `docs/DECISIONS.md` — durable architecture decisions.
+6. `docs/QUALITY-GATES.md` — CI, coverage, Sonar, and preview requirements.
+7. `docs/FIRST-APPLICATION-PLAN.md` — Step 3/Step 4 implementation plan.
+8. `docs/V1-SCREEN-PLAN.md` — proposed Version 1 owner-dashboard screens and safe visual scope.
 
 Do not rely on this file alone for live external state. Before a mutating GitHub, Sonar, Render, Supabase, deployment, or database action, verify the current repository, branch/HEAD, and relevant external resource.
 
@@ -77,6 +79,17 @@ No `orbis-admin` Render service exists yet by design. A Render service and PR Pr
 - No ORBIS Admin authentication/SSO implementation has been started yet.
 - No product-specific business data belongs in the Admin database.
 
+## Confirmed product vision
+
+The intended product direction is now documented in `docs/CONTROL-PLANE-VISION.md`:
+
+1. ORBIS Admin becomes the **single owner/admin control center** for all present and future ORBIS projects.
+2. ORBIS Admin also becomes the **central ORBIS user/customer identity registry** so one person keeps one permanent ORBIS identity across products.
+3. Customers use their product/app, not the owner dashboard.
+4. Product-specific business data remains in each product's own database.
+5. New ORBIS projects must be onboardable through a registry/integration model rather than requiring a custom hard-coded dashboard redesign.
+6. Older admin/dashboard surfaces stay in service until the new control center has genuinely replaced and verified their required capabilities.
+
 ## Canonical five-step roadmap
 
 ### Step 1 — GitHub governance and ruleset — COMPLETE
@@ -89,15 +102,22 @@ The required `Build, Test & Safety Audit` context, zero-debt CI contract, isolat
 
 ### Step 3 — Pre-code architecture and exact first PR plan — IN PROGRESS
 
-Current work is documentation/planning only. Freeze the first application architecture, folder boundaries, package scripts, test strategy, first-PR scope, and acceptance criteria before adding production application code.
+The owner-control/central-identity vision is documented. The proposed first application architecture and Version 1 screen plan are now under review.
 
-The working plan is in `docs/FIRST-APPLICATION-PLAN.md`.
+Current Step 3 documents:
+
+- `docs/CONTROL-PLANE-VISION.md`
+- `docs/FIRST-APPLICATION-PLAN.md`
+- `docs/V1-SCREEN-PLAN.md`
+- proposed ADR-012 in `docs/DECISIONS.md`
+
+No production application code is being added in this planning PR.
 
 ### Step 4 — First application scaffold PR — PENDING
 
-Create the first deployable ORBIS Admin application scaffold on a new feature branch. The PR must activate and pass the full application quality gate, including lint, type-check, tests, 100% aggregate coverage, Knip, JSCPD, dependency audit, production build, smoke verification, and Sonar Quality Gate.
+After Step 3 is accepted and merged, create the first deployable ORBIS Admin application scaffold on a new feature branch. The PR must activate and pass the full application quality gate.
 
-Do not add database/auth/product integrations to the first scaffold PR.
+The first scaffold is an owner-admin shell and delivery foundation. It may contain safe demo/read-only dashboard state and the `/health` API contract, but it must not add real customer data, database writes, authentication, publish/deploy/rollback controls, or production integrations.
 
 ### Step 5 — Render service and PR Preview — PENDING
 
@@ -107,20 +127,24 @@ After the first application scaffold is accepted and available on `main`, create
 
 Only after the delivery/runtime foundation is stable should implementation move into the control-plane domains, in deliberate architecture PRs:
 
+- owner/admin authentication,
 - central ORBIS identity and authentication contract,
 - authorization/capability model,
 - Admin database and migrations,
-- product/project registry,
+- dynamic product/project registry,
 - user-product membership/entitlement model,
+- module/model version and publish-state contracts,
 - audit log,
 - read-only GitHub/Render operational visibility,
-- carefully permissioned administrative actions.
+- carefully permissioned publish/deploy/rollback and other administrative actions.
 
 These are not part of the first scaffold PR.
 
 ## Current exact next action
 
-Complete and review Step 3. Do not write application code in the Step 3 planning PR. Once the proposed first-application architecture is accepted, mark its durable architecture decision accepted, merge the planning PR, sync local `main`, and then start Step 4 on a new feature branch.
+Review the proposed Version 1 dashboard information architecture and visual direction. The owner should decide whether the V1 shell feels like the correct ORBIS command center and request any layout/screen changes.
+
+Do **not** start production application code until that review is complete. After visual/structural approval, finalize Step 3, mark the durable first-stack decision accepted, merge the planning PR manually after required checks are green, sync local `main`, and start Step 4 on a new feature branch.
 
 ## Handoff/update discipline
 
@@ -129,6 +153,8 @@ Update this file in the same PR whenever any of the following materially changes
 - roadmap step status,
 - required GitHub check names or ruleset behavior,
 - first application architecture,
+- owner-control/central-identity vision,
+- Version 1 screen scope,
 - Sonar project/gate status,
 - Render service/preview status,
 - database/auth implementation status,
