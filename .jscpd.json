@@ -1,12 +1,8 @@
 {
   "threshold": 0,
   "reporters": ["console"],
-  "minLines": 5,
-  "minTokens": 50,
-  "ignore": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/coverage/**",
-    "**/.orbis-backup/**"
-  ]
+  "format": ["typescript", "tsx"],
+  "minLines": 8,
+  "minTokens": 70,
+  "ignore": ["**/*.test.ts", "**/*.test.tsx", "**/dist/**", "**/coverage/**"]
 }

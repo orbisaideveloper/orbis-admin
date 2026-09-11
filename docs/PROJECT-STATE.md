@@ -26,15 +26,15 @@ Do not rely on this file alone for live external state. Before a mutating GitHub
 - Default/protected branch: `main`
 - ORBIS Admin work must not modify another ORBIS repository unless the user explicitly asks for that repository in the current task.
 
-## Verified baseline after PR #2
+## Verified baseline after PR #3
 
-PR #2, `ci: establish ORBIS Admin zero-debt PR quality baseline`, was squash-merged into `main`.
+PR #3, `docs: finalize ORBIS Admin Step 3 architecture and V1 plan`, was squash-merged into `main`.
 
 Verified merge commit:
 
-`3cc1242abce249886455629d2e9d1c805451d316`
+`3392c5fb37ba1a7293dc3bc3beef9f297b4e8994`
 
-The local Termux `main` and `origin/main` were verified at the same commit after merge.
+Step 4 implementation is now isolated on `feat/first-admin-scaffold`. The first application-code PR has not yet been opened or merged.
 
 ### GitHub governance
 
@@ -63,7 +63,7 @@ Verified project identity:
 - project name: `orbis-admin`
 - GitHub Actions secret name: `SONAR_TOKEN`
 
-The repository is bound to the Admin project only. Actual application-code Sonar analysis has not yet run because no application code exists. Server-side Quality Gate behavior must be configured/verified in SonarQube Cloud before it is claimed as enforced.
+The repository is bound to the Admin project only. The first real application code is now being built on `feat/first-admin-scaffold`; the first application-code Sonar analysis will run when that branch is pushed and opened as a PR. Server-side Quality Gate behavior must be verified from that real scan before it is claimed as enforced.
 
 ### Render
 
@@ -73,7 +73,7 @@ No `orbis-admin` Render service exists yet by design. A Render service and PR Pr
 
 ### Application/database/auth status
 
-- No ORBIS Admin application scaffold exists yet.
+- The first ORBIS Admin application scaffold is now in progress on `feat/first-admin-scaffold`.
 - No ORBIS Admin production/staging Render service exists yet.
 - No ORBIS Admin application database schema has been implemented yet.
 - No ORBIS Admin authentication/SSO implementation has been started yet.
@@ -101,7 +101,7 @@ Repository governance, permanent instructions, PR-first delivery, protected `mai
 
 The required `Build, Test & Safety Audit` context, zero-debt CI contract, isolated Sonar project binding, and reporting/toolchain rules are established.
 
-### Step 3 — Pre-code architecture and exact first PR plan — APPROVED; PLANNING PR NOT YET MERGED
+### Step 3 — Pre-code architecture and exact first PR plan — COMPLETE
 
 The owner-control/central-identity vision, first application stack, and Version 1 visual/navigation direction have been reviewed and approved.
 
@@ -128,11 +128,11 @@ Current Step 3 documents:
 - `docs/V1-SCREEN-PLAN.md`
 - accepted ADR-012 and ADR-013 in `docs/DECISIONS.md`
 
-No production application code has been added in this planning PR.
+PR #3 has been merged to `main`; no production application code was part of that planning PR.
 
-### Step 4 — First application scaffold PR — NEXT AFTER STEP 3 MERGE
+### Step 4 — First application scaffold PR — IN PROGRESS
 
-After the Step 3 planning PR is manually merged and local `main` is synced, create the first deployable ORBIS Admin application scaffold on a new feature branch.
+The first deployable ORBIS Admin application scaffold is being implemented on `feat/first-admin-scaffold`.
 
 The first scaffold is an owner-admin shell and delivery foundation. It includes the approved responsive command-center shell, safe demo/read-only navigation, and `/health` API contract, but it must not add real customer data, database writes, authentication, publish/deploy/rollback controls, or live product write integrations.
 
@@ -161,15 +161,15 @@ These are not part of the first scaffold PR.
 
 ## Current exact next action
 
-Finish Step 3 delivery evidence:
+Finish the Step 4 scaffold on `feat/first-admin-scaffold`:
 
-1. verify the planning PR's required governance-only check is green,
-2. manually merge the planning PR only after explicit merge acceptance,
-3. sync local `main`,
-4. create a new Step 4 application feature branch,
-5. implement the approved first scaffold and let the full application quality gate run.
+1. complete the approved compact responsive owner dashboard, routing, safe Copy controls, shared health contract, and tests,
+2. run targeted local verification for the changed application area,
+3. commit and push the feature branch,
+4. open the first application-code PR so the full GitHub/Sonar quality gate runs,
+5. merge only after required checks are green and the user explicitly accepts the merge.
 
-Do not mix Step 4 production application code into the Step 3 planning branch.
+Do not create the ORBIS Admin Render service until this first deployable scaffold is accepted on `main`.
 
 ## Handoff/update discipline
 

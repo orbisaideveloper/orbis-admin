@@ -1,435 +1,165 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import App from './App'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import App, { TestRouter, copyText, formatDateTime } from './App'
 
-const routeCases: Array<[string, string]> = [
-  ['home', 'Command Center'],
-  ['projects', 'Projects'],
-  ['foundation', 'ORBIS Foundation'],
-  ['actions', 'GitHub Actions'],
-  ['sonar', 'Sonar Quality'],
-  ['render', 'Render / Environments'],
-  ['users', 'Central Users'],
-  ['settings', 'Settings / Integrations'],
-  ['activity', 'Activity / Audit'],
-  ['review', 'Review / Publish'],
-  ['alerts', 'Alerts / Incidents'],
-  ['health', 'Service Health'],
-  ['foundation-actions', 'Foundation · GitHub Actions'],
-  ['foundation-sonar', 'Foundation · Sonar Quality'],
-  ['foundation-render', 'Foundation · Render'],
-  ['foundation-runtime', 'Foundation · Runtime'],
-  ['foundation-modules', 'Foundation · Modules / Models'],
-  ['foundation-users', 'Foundation · Users'],
-  ['foundation-versions', 'Foundation · Versions'],
-  ['foundation-quality', 'Foundation · Health & Quality'],
-]
+const clipboardWrite = vi.fn<(value: string) => Promise<void>>()
 
-function setRoute(route?: string) {
-  window.history.replaceState(
-    {},
-    '',
-    route ? `#${route}` : '/',
-  )
-}
+beforeEach(() => {
+  clipboardWrite.mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: clipboardWrite },
+  })
+})
 
-function buttonContaining(text: string) {
-  const node = screen.getByText(text)
-  const button = node.closest('button')
-
-  if (!button) {
-    throw new Error(`No button found for ${text}`)
-  }
-
-  return button
-}
+afterEach(() => {
+  vi.useRealTimers()
+  clipboardWrite.mockClear()
+})
 
 describe('ORBIS Admin V1 shell', () => {
-  it.each(routeCases)(
-    'renders route %s',
-    (route, expectedHeading) => {
-      setRoute(route)
-      render(<App />)
+  it('mounts the production BrowserRouter entry component', () => {
+    window.history.replaceState({}, '', '/')
+    const view = render(<App />)
+    expect(screen.getByRole('heading', { name: 'ORBIS Admin' })).toBeTruthy()
+    view.unmount()
+  })
 
-      expect(
-        screen.getByRole('heading', {
-          level: 1,
-          name: expectedHeading,
-        }),
-      ).toBeInTheDocument()
-    },
-  )
+  it('renders the compact command center and opens the menu', async () => {
+    const user = userEvent.setup()
+    const view = render(<TestRouter initialEntries={['/']} />)
 
-  it('falls back to home for empty and unknown routes', () => {
-    setRoute()
-    const first = render(<App />)
+    expect(screen.getByRole('heading', { name: 'ORBIS Admin' })).toBeTruthy()
+    expect(screen.getAllByText('Projects').length).toBeGreaterThan(0)
+    expect(screen.getByText('Central Users')).toBeTruthy()
+    expect(screen.getByText('Sonar Quality')).toBeTruthy()
 
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
+    const menuButton = screen.getByRole('button', { name: 'Open admin menu' })
+    expect(menuButton.getAttribute('aria-expanded')).toBe('false')
+    await user.click(menuButton)
+    expect(menuButton.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('menuitem', { name: 'Read-only V1' })).toBeTruthy()
+    await user.click(menuButton)
+    expect(menuButton.getAttribute('aria-expanded')).toBe('false')
 
+    view.unmount()
+  })
+
+  it('shows project registry, project details and provider link', async () => {
+    const user = userEvent.setup()
+    render(<TestRouter initialEntries={['/']} />)
+
+    await user.click(screen.getByRole('link', { name: /Projects Open the registry/i }))
+    expect(screen.getByRole('heading', { name: 'Projects' })).toBeTruthy()
+
+    await user.click(screen.getByRole('link', { name: /Control Plane ORBIS Admin/i }))
+    expect(screen.getByRole('heading', { name: 'ORBIS Admin' })).toBeTruthy()
+    expect(screen.getByText('Step 4')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Open in GitHub ↗' }).getAttribute('href')).toContain('orbis-admin')
+  })
+
+  it('opens a category and project-specific detail', async () => {
+    const user = userEvent.setup()
+    render(<TestRouter initialEntries={['/category/sonar']} />)
+
+    expect(screen.getByRole('heading', { name: 'Sonar Quality' })).toBeTruthy()
+    await user.click(screen.getByRole('link', { name: /ORBIS Admin.*Open Sonar Quality detail/i }))
+    expect(screen.getByRole('heading', { name: 'Sonar Quality' })).toBeTruthy()
+    expect(screen.getByText(/V1 safety boundary/)).toBeTruthy()
+    expect(screen.getByText(/repository=orbisaideveloper\/orbis-admin/)).toBeTruthy()
+  })
+
+  it('copies safe repository and diagnostic values', async () => {
+    const user = userEvent.setup()
+
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: clipboardWrite },
+    })
+
+    render(<TestRouter initialEntries={['/detail/github/orbis-admin']} />)
+
+    const copyButtons = screen.getAllByRole('button', { name: 'Copy' })
+    await user.click(copyButtons[0])
+    expect(clipboardWrite).toHaveBeenCalledWith('orbisaideveloper/orbis-admin')
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: /Copy|Copied/ })).toHaveLength(2)
+  })
+
+  it('supports Home and Back navigation controls', async () => {
+    const user = userEvent.setup()
+    render(<TestRouter initialEntries={['/', '/projects', '/projects/orbis-admin']} />)
+
+    expect(screen.getByText('orbisaideveloper/orbis-admin')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Go back one screen' }))
+    expect(screen.getByRole('heading', { name: 'Projects' })).toBeTruthy()
+    await user.click(screen.getByRole('link', { name: '⌂ Home' }))
+    expect(screen.getByRole('heading', { name: 'ORBIS Admin' })).toBeTruthy()
+  })
+
+  it('renders not-found states for unknown routes and unknown records', () => {
+    const first = render(<TestRouter initialEntries={['/unknown']} />)
+    expect(screen.getByRole('heading', { name: 'Admin view not found' })).toBeTruthy()
     first.unmount()
 
-    setRoute('not-a-real-route')
-    render(<App />)
+    const second = render(<TestRouter initialEntries={['/projects/missing']} />)
+    expect(screen.getByRole('heading', { name: 'Admin view not found' })).toBeTruthy()
+    second.unmount()
 
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
+    const third = render(<TestRouter initialEntries={['/category/missing']} />)
+    expect(screen.getByRole('heading', { name: 'Admin view not found' })).toBeTruthy()
+    third.unmount()
+
+    const fourth = render(<TestRouter initialEntries={['/detail/missing/orbis-admin']} />)
+    expect(screen.getByRole('heading', { name: 'Admin view not found' })).toBeTruthy()
+    fourth.unmount()
+
+    render(<TestRouter initialEntries={['/detail/github/missing']} />)
+    expect(screen.getByRole('heading', { name: 'Admin view not found' })).toBeTruthy()
   })
 
-  it('drills from home through Projects and Foundation', () => {
-    setRoute('home')
-    render(<App />)
+  it('covers project cards without provider links and every project-area card', () => {
+    const view = render(<TestRouter initialEntries={['/projects/orbis-game']} />)
+    expect(screen.getByText('Not registered')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Open in GitHub ↗' })).toBeNull()
+    expect(screen.getByRole('link', { name: /GitHub Actions/ })).toBeTruthy()
+    view.unmount()
 
-    fireEvent.click(buttonContaining('Projects'))
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Projects',
-      }),
-    ).toBeInTheDocument()
-
-    expect(
-      screen.getByRole('button', {
-        name: /ORBIS Game/i,
-      }),
-    ).toBeDisabled()
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /ORBIS Foundation/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'ORBIS Foundation',
-      }),
-    ).toBeInTheDocument()
-
-    fireEvent.click(buttonContaining('Runtime'))
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Foundation · Runtime',
-      }),
-    ).toBeInTheDocument()
+    render(<TestRouter initialEntries={['/projects/orbis-foundation']} />)
+    expect(screen.getByRole('heading', { name: 'ORBIS Foundation' })).toBeTruthy()
   })
 
-  it('uses browser Back when internal history has depth', () => {
-    setRoute('home')
-    render(<App />)
-
-    fireEvent.click(buttonContaining('Projects'))
-
-    const backSpy = vi
-      .spyOn(window.history, 'back')
-      .mockImplementation(() => undefined)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /Back/i,
-      }),
-    )
-
-    expect(backSpy).toHaveBeenCalledTimes(1)
-
-    backSpy.mockRestore()
-  })
-
-  it('returns home when Back starts from a direct secondary route', () => {
-    setRoute('settings')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /Back/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('supports Home and top brand navigation', () => {
-    setRoute('settings')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /Home/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Go to ORBIS Command Center',
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('opens and uses the three-dot navigation menu', () => {
-    setRoute('home')
-    render(<App />)
-
-    const menuButton = screen.getByRole('button', {
-      name: 'Open navigation menu',
-    })
-
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false')
-
-    fireEvent.click(menuButton)
-
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true')
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Settings',
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Settings / Integrations',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('handles same-route navigation from the menu', () => {
-    setRoute('home')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Open navigation menu',
-      }),
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Command Center',
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('opens project detail from aggregate GitHub Actions', () => {
-    setRoute('actions')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /ORBIS Foundation.*Required GitHub workflow checks/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Foundation · GitHub Actions',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('opens project detail from aggregate Sonar Quality', () => {
-    setRoute('sonar')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /ORBIS Foundation.*orbisaideveloper_orbis-foundation/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Foundation · Sonar Quality',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('opens project detail from aggregate Render view', () => {
-    setRoute('render')
-    render(<App />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /ORBIS Foundation.*Production and staging services/i,
-      }),
-    )
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Foundation · Render',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('tracks browser popstate through known, new and invalid routes', () => {
-    setRoute('home')
-    render(<App />)
-
-    fireEvent.click(buttonContaining('Projects'))
-
-    act(() => {
-      window.history.replaceState({}, '', '#home')
-      window.dispatchEvent(new PopStateEvent('popstate'))
-    })
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-
-    act(() => {
-      window.history.replaceState({}, '', '#sonar')
-      window.dispatchEvent(new PopStateEvent('popstate'))
-    })
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Sonar Quality',
-      }),
-    ).toBeInTheDocument()
-
-    act(() => {
-      window.history.replaceState({}, '', '#invalid-route')
-      window.dispatchEvent(new PopStateEvent('popstate'))
-    })
-
-    expect(
-      screen.getByRole('heading', {
-        level: 1,
-        name: 'Command Center',
-      }),
-    ).toBeInTheDocument()
-  })
-
-  it('copies safe values and clears the success toast', async () => {
+  it('formats visible date and time and refreshes the clock timer', () => {
     vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-11T10:30:00+05:30'))
+    const formatted = formatDateTime(new Date())
+    expect(formatted.date).toContain('2026')
+    expect(formatted.time.length).toBeGreaterThan(0)
 
-    const writeText = vi.fn().mockResolvedValue(undefined)
-
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    })
-
-    setRoute('settings')
-    render(<App />)
-
-    await act(async () => {
-      fireEvent.click(
-        screen.getAllByRole('button', {
-          name: 'Copy',
-        })[0],
-      )
-      await Promise.resolve()
-    })
-
-    expect(writeText).toHaveBeenCalled()
-    expect(screen.getByText('Copied')).toBeInTheDocument()
-
+    const view = render(<TestRouter initialEntries={['/']} />)
     act(() => {
-      vi.advanceTimersByTime(1200)
+      vi.advanceTimersByTime(60_000)
     })
-
-    expect(screen.queryByText('Copied')).not.toBeInTheDocument()
-
-    vi.useRealTimers()
+    expect(screen.getByLabelText('Current admin date and time')).toBeTruthy()
+    view.unmount()
   })
 
-  it('shows a safe message when clipboard copy fails', async () => {
-    vi.useFakeTimers()
-
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: vi
-          .fn()
-          .mockRejectedValue(new Error('clipboard unavailable')),
-      },
-    })
-
-    setRoute('foundation-actions')
-    render(<App />)
-
-    await act(async () => {
-      fireEvent.click(
-        screen.getAllByRole('button', {
-          name: 'Copy',
-        })[0],
-      )
-      await Promise.resolve()
-    })
-
-    expect(
-      screen.getByText('Copy unavailable'),
-    ).toBeInTheDocument()
-
-    act(() => {
-      vi.runOnlyPendingTimers()
-    })
-
-    vi.useRealTimers()
+  it('exposes copyText as the single safe clipboard primitive', async () => {
+    await copyText('safe-value')
+    expect(clipboardWrite).toHaveBeenCalledWith('safe-value')
   })
 
-  it('updates the live clock interval', () => {
-    vi.useFakeTimers()
+  it('handles the optional detail copy control and project navigation links', () => {
+    render(<TestRouter initialEntries={['/detail/health/orbis-game']} />)
+    expect(screen.getAllByRole('button', { name: 'Copy' })).toHaveLength(2)
+    expect(screen.getAllByText('Planned').length).toBeGreaterThan(0)
+  })
 
-    setRoute('home')
-    render(<App />)
-
-    act(() => {
-      vi.advanceTimersByTime(1000)
-    })
-
-    expect(
-      screen.getByRole('button', {
-        name: 'Open navigation menu',
-      }),
-    ).toBeInTheDocument()
-
-    vi.useRealTimers()
+  it('keeps menu keyboard-clickable without exposing secrets', () => {
+    render(<TestRouter initialEntries={['/']} />)
+    const button = screen.getByRole('button', { name: 'Open admin menu' })
+    fireEvent.click(button)
+    expect(screen.getByText('No secrets rendered')).toBeTruthy()
   })
 })

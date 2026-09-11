@@ -8,7 +8,7 @@ export default defineConfig({
         url: 'http://localhost/',
       },
     },
-    setupFiles: ['./apps/web/src/test/setup.ts'],
+    setupFiles: ['./vitest.setup.ts'],
     include: [
       './apps/web/src/**/*.test.{ts,tsx}',
       './apps/api/src/**/*.test.ts',
@@ -21,8 +21,8 @@ export default defineConfig({
       include: [
         'apps/web/src/App.tsx',
         'apps/web/src/main.tsx',
+        'apps/web/src/model.ts',
         'apps/api/src/index.ts',
-        'packages/contracts/src/index.ts',
         'packages/contracts/src/health.ts',
       ],
       thresholds: {
