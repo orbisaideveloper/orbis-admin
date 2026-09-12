@@ -19,7 +19,11 @@ export const normalizePhone = (
   const hasInternationalPrefix = trimmed.startsWith('+')
   const digits = trimmed.replace(/\D/gu, '')
 
-  if (hasInternationalPrefix || !defaultCountryCallingCode || !digits) {
+  if (!digits) {
+    return ''
+  }
+
+  if (hasInternationalPrefix || !defaultCountryCallingCode) {
     return hasInternationalPrefix ? `+${digits}` : digits
   }
 
@@ -44,7 +48,7 @@ export const observationIdentifiers = (
       identifiers.push({
         kind: 'phone',
         normalizedValue,
-        assurance: 'observed',
+        assurance: observation.phoneAssurance ?? 'observed',
       })
     }
   }
@@ -56,7 +60,7 @@ export const observationIdentifiers = (
       identifiers.push({
         kind: 'email',
         normalizedValue,
-        assurance: 'observed',
+        assurance: observation.emailAssurance ?? 'observed',
       })
     }
   }
@@ -67,13 +71,49 @@ export const observationIdentifiers = (
 const identifierKey = (identifier: IdentityIdentifier) =>
   `${identifier.kind}:${identifier.normalizedValue}`
 
+const canonicalIdentityFor = (
+  identity: OrbisIdentity,
+  identitiesById: ReadonlyMap<string, OrbisIdentity>,
+) => {
+  const seenIdentityIds = new Set<string>()
+  let current = identity
+
+  while (current.lifecycle === 'merged') {
+    if (
+      !current.mergedIntoOrbisIdentityId
+      || seenIdentityIds.has(current.orbisIdentityId)
+    ) {
+      return current
+    }
+
+    seenIdentityIds.add(current.orbisIdentityId)
+
+    const target = identitiesById.get(
+      current.mergedIntoOrbisIdentityId,
+    )
+
+    if (!target) {
+      return current
+    }
+
+    current = target
+  }
+
+  return current
+}
+
 export const resolveIdentityObservation = (
   observation: IdentityObservation,
   identities: readonly OrbisIdentity[],
 ): IdentityResolution => {
   const observedIdentifiers = observationIdentifiers(observation)
+  const verifiedObservedKeys = new Set(
+    observedIdentifiers
+      .filter(({ assurance }) => assurance === 'verified')
+      .map(identifierKey),
+  )
 
-  if (observedIdentifiers.length === 0) {
+  if (verifiedObservedKeys.size === 0) {
     return {
       outcome: 'create_provisional',
       matchedOrbisIdentityId: null,
@@ -82,14 +122,31 @@ export const resolveIdentityObservation = (
     }
   }
 
-  const observedKeys = new Set(observedIdentifiers.map(identifierKey))
-  const candidates = identities.filter(
-    (identity) =>
-      identity.lifecycle !== 'merged' &&
-      identity.identifiers.some((identifier) =>
-        observedKeys.has(identifierKey(identifier)),
-      ),
+  const identitiesById = new Map(
+    identities.map((identity) => [identity.orbisIdentityId, identity]),
   )
+  const candidatesById = new Map<string, OrbisIdentity>()
+
+  for (const identity of identities) {
+    const hasVerifiedMatch = identity.identifiers.some(
+      (identifier) =>
+        identifier.assurance === 'verified'
+        && verifiedObservedKeys.has(identifierKey(identifier)),
+    )
+
+    if (hasVerifiedMatch) {
+      const canonicalIdentity = canonicalIdentityFor(
+        identity,
+        identitiesById,
+      )
+      candidatesById.set(
+        canonicalIdentity.orbisIdentityId,
+        canonicalIdentity,
+      )
+    }
+  }
+
+  const candidates = [...candidatesById.values()]
 
   if (candidates.length === 0) {
     return {
@@ -121,6 +178,15 @@ export const resolveIdentityObservation = (
       matchedOrbisIdentityId: null,
       candidateOrbisIdentityIds: candidateIds,
       reason: 'subject_kind_conflict',
+    }
+  }
+
+  if (candidate.lifecycle !== 'active') {
+    return {
+      outcome: 'review_required',
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: candidateIds,
+      reason: 'lifecycle_conflict',
     }
   }
 
