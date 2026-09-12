@@ -6,17 +6,19 @@ Foundation, ORBIS Game, or another product database.
 
 ## Current state
 
-`migrations/20260912150000_identity_foundation.sql` is the first identity
-persistence contract. It has been reviewed against PostgreSQL 17 / Supabase,
-statically tested, and remains unapplied to every database.
+`migrations/20260912150000_identity_foundation.sql` and
+`migrations/20260912160000_identity_action_guards.sql` are the first identity
+persistence checkpoint. They have been reviewed against PostgreSQL 17 /
+Supabase, statically tested, and remain unapplied to every database.
 
 This repository deliberately keeps provider-portable source migrations in
 `database/migrations`. For the dedicated Supabase project, a later approved
-live release must use a managed migration operation with the exact versioned
-SQL and then verify the recorded migration state. Do not paste this migration
-into a general SQL editor or apply it to a Foundation database.
+live release must use managed migration operations in timestamp order with the
+exact versioned SQL and then verify the recorded migration state. Do not paste
+these migrations into a general SQL editor or apply them to a Foundation
+database.
 
-The migration is intentionally fail-closed:
+The migrations are intentionally fail-closed:
 
 - identity objects live in a private `orbis_identity` schema,
 - public privileges and future default public grants are revoked,
@@ -33,7 +35,7 @@ The migration is intentionally fail-closed:
 
 ## Application rule
 
-The API must generate UUIDv7 values and pass them explicitly. The migration does
+The API must generate UUIDv7 values and pass them explicitly. The migrations do
 not depend on a provider-specific UUIDv7 extension.
 
 Every future identity write must run server-side in one transaction:
@@ -47,7 +49,7 @@ No browser role receives direct access. The later identity API must define
 narrowly scoped server database access/policies before any write endpoint is
 enabled.
 
-Before applying this migration, verify the dedicated ORBIS Admin PostgreSQL
+Before applying these migrations, verify the dedicated ORBIS Admin PostgreSQL
 target, validate the SQL in a disposable standard-Linux or provider environment,
 preserve a timestamped Downloads report, and obtain explicit user approval. Do
 not run Prisma engines in native Android Termux.
