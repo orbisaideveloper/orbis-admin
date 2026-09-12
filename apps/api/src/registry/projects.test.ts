@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  createProjectRegistryReader,
   readProjectRegistry,
   registeredProjects,
 } from './projects'
@@ -12,6 +13,21 @@ const unknownReader = async (registration: {
   branch: registration.defaultBranch,
   headSha: null,
   ci: 'unknown' as const,
+})
+
+const unknownRenderReader = async (registration: {
+  serviceId: string
+  serviceName: string
+  branch: string
+  region: string
+}) => ({
+  serviceId: registration.serviceId,
+  serviceName: registration.serviceName,
+  branch: registration.branch,
+  region: registration.region,
+  deployId: null,
+  commitId: null,
+  deployment: 'unknown' as const,
 })
 
 describe('canonical project registry', () => {
@@ -45,6 +61,7 @@ describe('canonical project registry', () => {
     const response = await readProjectRegistry(
       new Date('2026-09-11T17:30:00.000Z'),
       unknownReader,
+      unknownRenderReader,
     )
 
     expect(response).toEqual({
@@ -54,13 +71,16 @@ describe('canonical project registry', () => {
     })
   })
 
-  it('enriches only GitHub-registered projects with live CI state', async () => {
-    const registrations: string[] = []
+  it('enriches only projects registered for each live provider', async () => {
+    const githubRegistrations: string[] = []
+    const renderRegistrations: string[] = []
 
     const response = await readProjectRegistry(
       new Date('2026-09-12T05:00:00.000Z'),
       async (registration) => {
-        registrations.push(registration.repositoryFullName)
+        githubRegistrations.push(
+          registration.repositoryFullName,
+        )
 
         return {
           repositoryFullName:
@@ -78,22 +98,45 @@ describe('canonical project registry', () => {
             : 'attention',
         }
       },
+      async (registration) => {
+        renderRegistrations.push(registration.serviceId)
+
+        return {
+          serviceId: registration.serviceId,
+          serviceName: registration.serviceName,
+          branch: registration.branch,
+          region: registration.region,
+          deployId: 'dep-live',
+          commitId: 'render-live-head',
+          deployment: 'healthy',
+        }
+      },
     )
 
-    expect(registrations).toEqual([
+    expect(githubRegistrations).toEqual([
       'orbisaideveloper/orbis-admin',
       'orbisaideveloper/orbis-foundation',
+    ])
+
+    expect(renderRegistrations).toEqual([
+      'srv-dai144uq1p3s73ajc1ag',
     ])
 
     expect(response.projects[0].release).toEqual(
       registeredProjects[0].release,
     )
     expect(response.projects[0].signals.ci).toBe('healthy')
+    expect(response.projects[0].signals.deployment).toBe(
+      'healthy',
+    )
 
     expect(response.projects[1].release).toEqual(
       registeredProjects[1].release,
     )
     expect(response.projects[1].signals.ci).toBe('attention')
+    expect(response.projects[1].signals.deployment).toBe(
+      'unknown',
+    )
 
     expect(response.projects[2]).toEqual(
       registeredProjects[2],
@@ -102,6 +145,10 @@ describe('canonical project registry', () => {
 
   it('uses the server-side default GitHub reader when none is injected', async () => {
     const originalFetch = globalThis.fetch
+    const originalRenderToken =
+      process.env.ORBIS_RENDER_TOKEN
+    delete process.env.ORBIS_RENDER_TOKEN
+
     const requests: string[] = []
 
     globalThis.fetch = (async (
@@ -167,6 +214,28 @@ describe('canonical project registry', () => {
       )
     } finally {
       globalThis.fetch = originalFetch
+
+      if (originalRenderToken === undefined) {
+        delete process.env.ORBIS_RENDER_TOKEN
+      } else {
+        process.env.ORBIS_RENDER_TOKEN =
+          originalRenderToken
+      }
     }
   })
+  it('creates a reusable registry reader from injected provider readers', async () => {
+    const reader = createProjectRegistryReader(
+      unknownReader,
+      unknownRenderReader,
+    )
+
+    const response = await reader()
+
+    expect(response.schemaVersion).toBe('v1')
+    expect(response.projects).toHaveLength(3)
+    expect(
+      Number.isNaN(Date.parse(response.generatedAt)),
+    ).toBe(false)
+  })
+
 })

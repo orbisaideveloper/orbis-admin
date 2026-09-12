@@ -2,11 +2,16 @@ import type {
   GitHubRegistration,
   ProjectRegistryProject,
   ProjectRegistryResponse,
+  RenderRegistration,
 } from '@orbis-admin/contracts'
 import {
   createGitHubReader,
   type GitHubReadState,
 } from '../providers/github.js'
+import {
+  createRenderReader,
+  type RenderReadState,
+} from '../providers/render.js'
 
 const unknownSignals = {
   ci: 'unknown',
@@ -111,6 +116,10 @@ type GitHubProjectReader = (
   registration: GitHubRegistration,
 ) => Promise<GitHubReadState>
 
+type RenderProjectReader = (
+  registration: RenderRegistration,
+) => Promise<RenderReadState>
+
 const withGitHubState = (
   project: ProjectRegistryProject,
   githubState: GitHubReadState,
@@ -122,9 +131,21 @@ const withGitHubState = (
   },
 })
 
+const withRenderState = (
+  project: ProjectRegistryProject,
+  renderState: RenderReadState,
+): ProjectRegistryProject => ({
+  ...project,
+  signals: {
+    ...project.signals,
+    deployment: renderState.deployment,
+  },
+})
+
 export const readProjectRegistry = async (
   now: Date = new Date(),
   readGitHub?: GitHubProjectReader,
+  readRender?: RenderProjectReader,
 ): Promise<ProjectRegistryResponse> => {
   const githubReader =
     readGitHub ??
@@ -132,17 +153,39 @@ export const readProjectRegistry = async (
       token: process.env.ORBIS_GITHUB_TOKEN,
     })
 
+  const renderReader =
+    readRender ??
+    createRenderReader({
+      token: process.env.ORBIS_RENDER_TOKEN,
+    })
+
   const projects = await Promise.all(
     registeredProjects.map(async (project) => {
-      if (!('github' in project.providers)) {
-        return project
+      let enrichedProject: ProjectRegistryProject = project
+
+      if ('github' in project.providers) {
+        const githubState = await githubReader(
+          project.providers.github,
+        )
+
+        enrichedProject = withGitHubState(
+          enrichedProject,
+          githubState,
+        )
       }
 
-      const githubState = await githubReader(
-        project.providers.github,
-      )
+      if ('render' in project.providers) {
+        const renderState = await renderReader(
+          project.providers.render,
+        )
 
-      return withGitHubState(project, githubState)
+        enrichedProject = withRenderState(
+          enrichedProject,
+          renderState,
+        )
+      }
+
+      return enrichedProject
     }),
   )
 
@@ -151,4 +194,20 @@ export const readProjectRegistry = async (
     generatedAt: now.toISOString(),
     projects,
   }
+}
+
+export const createProjectRegistryReader = (
+  readGitHub: GitHubProjectReader = createGitHubReader({
+    token: process.env.ORBIS_GITHUB_TOKEN,
+  }),
+  readRender: RenderProjectReader = createRenderReader({
+    token: process.env.ORBIS_RENDER_TOKEN,
+  }),
+) => {
+  return () =>
+    readProjectRegistry(
+      new Date(),
+      readGitHub,
+      readRender,
+    )
 }
