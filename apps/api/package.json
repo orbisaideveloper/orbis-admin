@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "tsx -e \"import('./src/index.ts').then(({ startServer }) => startServer(Number(process.env.PORT || 3001)))\"",
     "build": "tsc -p tsconfig.json",
-    "start": "node -e \"import('./dist/index.js').then(({ startServer }) => startServer(Number(process.env.PORT || 10000)))\""
+    "start": "node -e \"import('./dist/index.js').then(({ resolveDefaultWebRoot, startServer }) => startServer(Number(process.env.PORT || 10000), { webRoot: process.env.WEB_ROOT || resolveDefaultWebRoot() }))\""
   },
   "dependencies": {
+    "@fastify/static": "^10.1.3",
     "@orbis-admin/contracts": "0.1.0",
     "fastify": "^5.12.4"
   },

@@ -1,10 +1,65 @@
+import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance } from 'fastify'
+import { resolve } from 'node:path'
 import {
   healthResponse,
   type HealthResponse,
 } from '@orbis-admin/contracts'
+import { registerProjectRoutes } from './routes/projects.js'
 
-export function buildApp(): FastifyInstance {
+export type BuildAppOptions = {
+  webRoot?: string
+}
+
+export const resolveDefaultWebRoot = (
+  cwd: string = process.cwd(),
+) => {
+  const normalized = cwd.replaceAll('\\', '/')
+
+  if (normalized.endsWith('/apps/api')) {
+    return resolve(cwd, '../web/dist')
+  }
+
+  return resolve(cwd, 'apps/web/dist')
+}
+
+const shouldKeepNotFound = (pathname: string) =>
+  pathname.startsWith('/api/') ||
+  pathname === '/health' ||
+  pathname.startsWith('/health/') ||
+  pathname.startsWith('/assets/') ||
+  pathname.includes('.')
+
+const registerWebRuntime = (
+  app: FastifyInstance,
+  webRoot: string,
+) => {
+  app.register(fastifyStatic, {
+    root: webRoot,
+    wildcard: false,
+  })
+
+  app.setNotFoundHandler((request, reply) => {
+    const pathname = request.url.split('?')[0]
+
+    if (shouldKeepNotFound(pathname)) {
+      return reply.code(404).send({
+        error: 'Not Found',
+      })
+    }
+
+    return reply
+      .type('text/html; charset=utf-8')
+      .sendFile('index.html', {
+        immutable: false,
+        maxAge: 0,
+      })
+  })
+}
+
+export function buildApp(
+  options: BuildAppOptions = {},
+): FastifyInstance {
   const app = Fastify({
     logger: false,
   })
@@ -14,13 +69,20 @@ export function buildApp(): FastifyInstance {
     async () => healthResponse,
   )
 
+  registerProjectRoutes(app)
+
+  if (options.webRoot) {
+    registerWebRuntime(app, options.webRoot)
+  }
+
   return app
 }
 
 export async function startServer(
   port: number,
+  options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
-  const app = buildApp()
+  const app = buildApp(options)
 
   await app.listen({
     host: '0.0.0.0',
