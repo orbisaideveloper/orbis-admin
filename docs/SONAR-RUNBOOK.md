@@ -212,6 +212,19 @@ Tooling, CI definitions and configuration remain Sonar quality/security
 scanned, but they are not counted as application runtime coverage or
 runtime CPD. Tooling duplication is separately guarded by JSCPD.
 
+### Database migration boundary
+
+Versioned PostgreSQL migrations remain Sonar quality/security-scanned and have
+static migration-contract tests. They are excluded only from JavaScript V8/LCOV
+runtime coverage because that coverage tool cannot execute PostgreSQL DDL.
+
+The sole migration-specific Sonar exception is `plsql:S1192` for
+`database/migrations/**/*.sql`: declarative lifecycle and assurance values must
+repeat inside PostgreSQL constraints and trigger guards. This is not a broad
+source exclusion and does not suppress SQL security analysis. Every migration
+still requires static checks, disposable database validation, and an explicit
+live-migration approval checkpoint.
+
 ### Termux report delivery
 
 The ORBIS Admin repository uses a repository-local `post-push` hook.
