@@ -26,7 +26,18 @@ Do not rely on this file alone for live external state. Before a mutating GitHub
 - Default/protected branch: `main`
 - ORBIS Admin work must not modify another ORBIS repository unless the user explicitly asks for that repository in the current task.
 
-## Verified baseline after PR #6
+## Verified baseline after PR #9
+
+PR #9, `Render Read Provider`, is merged. Its verified head was
+`7d39fb4765f072f424bd7cd53b1e041c3c77b9c4`; the verified merge commit and
+current `main` baseline is `de15ed0ec71774b9faccbfb00f6bd2b44588d6c1`.
+The post-merge main workflow run `34696160934` completed successfully, and the
+Termux local `main` was verified clean and synchronized to the same merge SHA.
+
+The control-plane read foundation now includes server-side, fail-closed GitHub
+and Render providers. Production Admin deployment remains explicitly deferred.
+
+### Earlier application baseline
 
 PR #4, `feat: add first ORBIS Admin V1 application scaffold`, is merged.
 
@@ -177,11 +188,18 @@ Implementation proceeds in deliberate phases:
 
 ## Current exact next action
 
-Start the first real read-only provider integration: **GitHub**.
+Build PR #10, **Unique ORBIS ID Foundation**, in bounded checkpoints.
 
-The first GitHub adapter slice should stay server-side and read-only. It should establish a typed provider boundary, validate/normalize external GitHub responses, and expose only the minimum repository/branch/commit/CI state needed to replace relevant `unknown` signals for registered repositories. GitHub credentials must never reach browser code. Provider failure must degrade safely to an explicit unknown/unavailable state rather than inventing green status.
+The first checkpoint defines the shared identity domain, UUIDv7 and opaque
+display-ID generation, identifier normalization, progressive resolution, safe
+person/organization separation, product references, targeted tests, and the
+durable contract in `docs/IDENTITY-FOUNDATION.md`.
 
-Keep this slice focused: no Render/Sonar adapter yet, no provider writes, no central identity database, no authentication rewrite, and no production deployment. Add targeted tests with 100% coverage for newly introduced/materially changed production behavior before PR review.
+Do not add a database provider, identity write endpoint, authentication, real
+customer data, automatic merge, production deployment, or provider write
+capability in this checkpoint. After its contracts and tests are accepted,
+select the dedicated ORBIS Admin database path and implement additive schema and
+migrations in the next checkpoint.
 
 ## Handoff/update discipline
 

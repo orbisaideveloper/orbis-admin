@@ -14,6 +14,7 @@ Before proposing or performing ORBIS Admin work, read the repository guidance in
 6. [`docs/QUALITY-GATES.md`](docs/QUALITY-GATES.md) — CI, coverage, Sonar, and preview requirements.
 7. [`docs/FIRST-APPLICATION-PLAN.md`](docs/FIRST-APPLICATION-PLAN.md) — Step 3/Step 4 plan while the first application foundation is being prepared.
 8. [`docs/V1-SCREEN-PLAN.md`](docs/V1-SCREEN-PLAN.md) — proposed owner-dashboard screens and visual scope for Version 1.
+9. [`docs/IDENTITY-FOUNDATION.md`](docs/IDENTITY-FOUNDATION.md) — progressive central identity and conflict-resolution contract.
 
 `docs/PROJECT-STATE.md` is the canonical session handoff. Update it in the same PR whenever the roadmap phase, verified external setup, or exact next action materially changes. Live external state must still be verified before mutation; the handoff file is not a substitute for checking GitHub, Sonar, Render, database, or deployment state.
 

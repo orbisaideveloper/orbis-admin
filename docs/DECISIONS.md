@@ -225,6 +225,22 @@ Before the first provider/product write capability is enabled, server-side fail-
 
 Before central identity/control data becomes production-critical, define backup policy, restore verification, migration rollback/recovery, recovery ownership, RPO/RTO targets, and identity corruption/reconciliation strategy. Restore must be testable.
 
+## ADR-024 — Identity resolution is progressive and conflict-safe
+
+**Status:** Accepted
+
+An ORBIS identity may begin as provisional when a product first observes a
+person or organization. Phone and email are mutable identifiers associated with
+the immutable canonical identity, not the identity itself. A single
+unambiguous normalized identifier may resolve to an existing identity;
+name-only similarity, multiple matches, or a person/organization mismatch must
+not trigger an automatic merge and instead requires review.
+
+Person and organization subjects remain distinct. Product-local party,
+customer, seller, or other roles attach through explicit product references and
+do not redefine the central subject. Authentication credentials and identifier
+verification remain separate security concerns.
+
 ## Future decisions to formalize
 
 Before the relevant production features are enabled, record explicit decisions for at least:
