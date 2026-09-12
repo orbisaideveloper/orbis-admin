@@ -13,6 +13,7 @@ import {
   resolveDefaultWebRoot,
   startServer,
 } from './index'
+import { readProjectRegistry } from './registry/projects'
 
 describe('ORBIS Admin API', () => {
   it('returns the shared health contract', async () => {
@@ -30,7 +31,19 @@ describe('ORBIS Admin API', () => {
   })
 
   it('returns the canonical v1 project registry read model', async () => {
-    const app = buildApp()
+    const app = buildApp({
+      projectRegistryReader: () =>
+        readProjectRegistry(
+          new Date('2026-09-12T05:45:00.000Z'),
+          async (registration) => ({
+            repositoryFullName:
+              registration.repositoryFullName,
+            branch: registration.defaultBranch,
+            headSha: null,
+            ci: 'unknown',
+          }),
+        ),
+    })
 
     const response = await app.inject({
       method: 'GET',
@@ -55,6 +68,72 @@ describe('ORBIS Admin API', () => {
     expect(Number.isNaN(Date.parse(body.generatedAt))).toBe(false)
 
     await app.close()
+  })
+
+  it('uses the default project registry reader when no override is injected', async () => {
+    const originalFetch = globalThis.fetch
+    const requests: string[] = []
+
+    globalThis.fetch = (async (
+      input: string | URL | Request,
+    ) => {
+      const url = String(input)
+      requests.push(url)
+
+      if (url.includes('/branches/')) {
+        return new Response(
+          JSON.stringify({
+            commit: {
+              sha: url.includes('/orbis-admin/')
+                ? 'admin-route-head'
+                : 'foundation-route-head',
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+            },
+          },
+        )
+      }
+
+      return new Response(
+        JSON.stringify({
+          check_runs: [
+            {
+              status: 'completed',
+              conclusion: 'success',
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        },
+      )
+    }) as typeof fetch
+
+    const app = buildApp()
+
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/projects',
+      })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(200)
+      expect(requests).toHaveLength(4)
+      expect(body.projects[0].signals.ci).toBe('healthy')
+      expect(body.projects[1].signals.ci).toBe('healthy')
+      expect(body.projects[2].signals.ci).toBe('unknown')
+    } finally {
+      globalThis.fetch = originalFetch
+      await app.close()
+    }
   })
 
   it('serves the built web application and preserves API/static 404 boundaries', async () => {

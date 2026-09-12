@@ -5,10 +5,14 @@ import {
   healthResponse,
   type HealthResponse,
 } from '@orbis-admin/contracts'
-import { registerProjectRoutes } from './routes/projects.js'
+import {
+  registerProjectRoutes,
+  type ProjectRegistryReader,
+} from './routes/projects.js'
 
 export type BuildAppOptions = {
   webRoot?: string
+  projectRegistryReader?: ProjectRegistryReader
 }
 
 export const resolveDefaultWebRoot = (
@@ -69,7 +73,10 @@ export function buildApp(
     async () => healthResponse,
   )
 
-  registerProjectRoutes(app)
+  registerProjectRoutes(
+    app,
+    options.projectRegistryReader,
+  )
 
   if (options.webRoot) {
     registerWebRuntime(app, options.webRoot)

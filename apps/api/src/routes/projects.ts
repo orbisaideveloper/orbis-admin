@@ -5,7 +5,14 @@ import {
 import type { FastifyInstance } from 'fastify'
 import { readProjectRegistry } from '../registry/projects.js'
 
-export const registerProjectRoutes = (app: FastifyInstance) => {
+export type ProjectRegistryReader = (
+) => Promise<ProjectRegistryResponse> | ProjectRegistryResponse
+
+export const registerProjectRoutes = (
+  app: FastifyInstance,
+  readRegistry: ProjectRegistryReader = () =>
+    readProjectRegistry(),
+) => {
   app.get<{ Reply: ProjectRegistryResponse }>(
     '/api/v1/projects',
     {
@@ -15,6 +22,6 @@ export const registerProjectRoutes = (app: FastifyInstance) => {
         },
       },
     },
-    async () => readProjectRegistry(),
+    async () => readRegistry(),
   )
 }
