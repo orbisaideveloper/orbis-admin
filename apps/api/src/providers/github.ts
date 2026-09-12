@@ -131,7 +131,10 @@ export const createGitHubReader = ({
   token,
   apiBaseUrl = 'https://api.github.com',
 }: GitHubReaderOptions = {}) => {
-  const baseUrl = apiBaseUrl.replace(/\/+$/, '')
+  let baseUrl = apiBaseUrl
+  while (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1)
+  }
   const headers = githubHeaders(token)
 
   return async (

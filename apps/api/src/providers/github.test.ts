@@ -26,6 +26,7 @@ describe('GitHub read-only provider', () => {
 
     const reader = createGitHubReader({
       token: 'server-only-token',
+      apiBaseUrl: 'https://api.github.example///',
       fetchImpl: async (url, init) => {
         const headers = new Headers(init?.headers)
         requests.push({
@@ -65,11 +66,11 @@ describe('GitHub read-only provider', () => {
     })
 
     expect(requests).toHaveLength(2)
-    expect(requests[0]?.url).toContain(
-      '/repos/orbisaideveloper/orbis-admin/branches/main',
+    expect(requests[0]?.url).toBe(
+      'https://api.github.example/repos/orbisaideveloper/orbis-admin/branches/main',
     )
-    expect(requests[1]?.url).toContain(
-      '/commits/abc123/check-runs?per_page=100',
+    expect(requests[1]?.url).toBe(
+      'https://api.github.example/repos/orbisaideveloper/orbis-admin/commits/abc123/check-runs?per_page=100',
     )
     expect(
       requests.every(
