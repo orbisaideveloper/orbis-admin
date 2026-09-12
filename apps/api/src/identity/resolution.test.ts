@@ -47,6 +47,13 @@ const identity = (
   ...overrides,
 })
 
+const verifiedObservation = (
+  overrides: Partial<IdentityObservation> = {},
+) => observation({
+  phoneAssurance: 'verified',
+  ...overrides,
+})
+
 describe('identity normalization', () => {
   it('normalizes email case and whitespace', () => {
     expect(normalizeEmail('  RAJU@Example.COM  ')).toBe('raju@example.com')
@@ -57,27 +64,35 @@ describe('identity normalization', () => {
     expect(normalizePhone('09876-543210')).toBe('09876543210')
     expect(normalizePhone('09876-543210', '+91')).toBe('+919876543210')
     expect(normalizePhone('09876-543210', '---')).toBe('09876543210')
+    expect(normalizePhone('+---', '+91')).toBe('')
   })
 
-  it('emits only non-empty observed identifiers', () => {
+  it('emits only non-empty identifiers with explicit assurance', () => {
     expect(observationIdentifiers(observation({
       phone: '---',
       email: ' Raju@Example.com ',
+      emailAssurance: 'verified',
     }))).toEqual([{
       kind: 'email',
       normalizedValue: 'raju@example.com',
-      assurance: 'observed',
+      assurance: 'verified',
     }])
 
     expect(observationIdentifiers(observation({
       phone: undefined,
       email: '   ',
     }))).toEqual([])
+
+    expect(observationIdentifiers(observation())).toEqual([{
+      kind: 'phone',
+      normalizedValue: '+919876543210',
+      assurance: 'observed',
+    }])
   })
 })
 
 describe('identity resolution', () => {
-  it('starts a provisional identity when only a name is observed', () => {
+  it('starts a provisional identity when only unverified data is observed', () => {
     expect(resolveIdentityObservation(
       observation({ phone: undefined }),
       [],
@@ -87,22 +102,41 @@ describe('identity resolution', () => {
       candidateOrbisIdentityIds: [],
       reason: 'no_strong_identifier',
     })
+
+    expect(resolveIdentityObservation(observation(), [identity()]))
+      .toMatchObject({
+        outcome: 'create_provisional',
+        reason: 'no_strong_identifier',
+      })
   })
 
-  it('starts a provisional identity when no identifier matches', () => {
-    expect(resolveIdentityObservation(observation(), [])).toMatchObject({
+  it('starts a provisional identity when no verified identifier matches', () => {
+    expect(resolveIdentityObservation(
+      verifiedObservation(),
+      [],
+    )).toMatchObject({
+      outcome: 'create_provisional',
+      reason: 'no_match',
+    })
+
+    expect(resolveIdentityObservation(
+      verifiedObservation(),
+      [identity({
+        identifiers: [{
+          kind: 'phone',
+          normalizedValue: '+919876543210',
+          assurance: 'observed',
+        }],
+      })],
+    )).toMatchObject({
       outcome: 'create_provisional',
       reason: 'no_match',
     })
   })
 
-  it('matches one non-merged identity by normalized identifier', () => {
-    const result = resolveIdentityObservation(observation(), [
+  it('matches only one active identity with the same verified identifier', () => {
+    const result = resolveIdentityObservation(verifiedObservation(), [
       identity(),
-      identity({
-        orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
-        lifecycle: 'merged',
-      }),
     ])
 
     expect(result).toEqual({
@@ -115,8 +149,57 @@ describe('identity resolution', () => {
     })
   })
 
-  it('requires review when identifiers point to multiple identities', () => {
-    const result = resolveIdentityObservation(observation(), [
+  it('follows a controlled merged redirect to its active identity', () => {
+    const sourceIdentity = identity({
+      orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
+      lifecycle: 'merged',
+      mergedIntoOrbisIdentityId: '01992aa0-0000-7000-8000-000000000001',
+    })
+
+    expect(resolveIdentityObservation(
+      verifiedObservation(),
+      [sourceIdentity, identity()],
+    )).toMatchObject({
+      outcome: 'match',
+      matchedOrbisIdentityId: '01992aa0-0000-7000-8000-000000000001',
+    })
+  })
+
+  it('requires review if a merged redirect is incomplete or cyclic', () => {
+    const missingTarget = identity({
+      lifecycle: 'merged',
+      mergedIntoOrbisIdentityId: '01992aa0-0000-7000-8000-000000000099',
+    })
+
+    expect(resolveIdentityObservation(
+      verifiedObservation(),
+      [missingTarget],
+    )).toMatchObject({
+      outcome: 'review_required',
+      reason: 'lifecycle_conflict',
+    })
+
+    const first = identity({
+      lifecycle: 'merged',
+      mergedIntoOrbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
+    })
+    const second = identity({
+      orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
+      lifecycle: 'merged',
+      mergedIntoOrbisIdentityId: '01992aa0-0000-7000-8000-000000000001',
+    })
+
+    expect(resolveIdentityObservation(
+      verifiedObservation(),
+      [first, second],
+    )).toMatchObject({
+      outcome: 'review_required',
+      reason: 'lifecycle_conflict',
+    })
+  })
+
+  it('requires review when verified identifiers point to multiple identities', () => {
+    const result = resolveIdentityObservation(verifiedObservation(), [
       identity(),
       identity({
         orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
@@ -131,11 +214,20 @@ describe('identity resolution', () => {
   })
 
   it('requires review instead of joining a person to an organization', () => {
-    expect(resolveIdentityObservation(observation(), [
+    expect(resolveIdentityObservation(verifiedObservation(), [
       identity({ subjectKind: 'organization' }),
     ])).toMatchObject({
       outcome: 'review_required',
       reason: 'subject_kind_conflict',
+    })
+  })
+
+  it('requires review instead of duplicating a suspended identity', () => {
+    expect(resolveIdentityObservation(verifiedObservation(), [
+      identity({ lifecycle: 'suspended' }),
+    ])).toMatchObject({
+      outcome: 'review_required',
+      reason: 'lifecycle_conflict',
     })
   })
 })
