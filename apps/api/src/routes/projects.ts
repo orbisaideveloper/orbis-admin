@@ -3,15 +3,15 @@ import {
   type ProjectRegistryResponse,
 } from '@orbis-admin/contracts'
 import type { FastifyInstance } from 'fastify'
-import { readProjectRegistry } from '../registry/projects.js'
+import { createProjectRegistryReader } from '../registry/projects.js'
 
 export type ProjectRegistryReader = (
 ) => Promise<ProjectRegistryResponse> | ProjectRegistryResponse
 
 export const registerProjectRoutes = (
   app: FastifyInstance,
-  readRegistry: ProjectRegistryReader = () =>
-    readProjectRegistry(),
+  readRegistry: ProjectRegistryReader =
+    createProjectRegistryReader(),
 ) => {
   app.get<{ Reply: ProjectRegistryResponse }>(
     '/api/v1/projects',

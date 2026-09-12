@@ -42,6 +42,15 @@ describe('ORBIS Admin API', () => {
             headSha: null,
             ci: 'unknown',
           }),
+          async (registration) => ({
+            serviceId: registration.serviceId,
+            serviceName: registration.serviceName,
+            branch: registration.branch,
+            region: registration.region,
+            deployId: 'dep-route',
+            commitId: 'render-route-head',
+            deployment: 'healthy',
+          }),
         ),
     })
 
@@ -61,7 +70,7 @@ describe('ORBIS Admin API', () => {
       signals: {
         ci: 'unknown',
         quality: 'unknown',
-        deployment: 'unknown',
+        deployment: 'healthy',
         health: 'unknown',
       },
     })
@@ -72,6 +81,10 @@ describe('ORBIS Admin API', () => {
 
   it('uses the default project registry reader when no override is injected', async () => {
     const originalFetch = globalThis.fetch
+    const originalRenderToken =
+      process.env.ORBIS_RENDER_TOKEN
+    delete process.env.ORBIS_RENDER_TOKEN
+
     const requests: string[] = []
 
     globalThis.fetch = (async (
@@ -132,6 +145,145 @@ describe('ORBIS Admin API', () => {
       expect(body.projects[2].signals.ci).toBe('unknown')
     } finally {
       globalThis.fetch = originalFetch
+
+      if (originalRenderToken === undefined) {
+        delete process.env.ORBIS_RENDER_TOKEN
+      } else {
+        process.env.ORBIS_RENDER_TOKEN =
+          originalRenderToken
+      }
+
+      await app.close()
+    }
+  })
+
+  it('reuses the Render cache across repeated project registry requests', async () => {
+    const originalFetch = globalThis.fetch
+    const originalRenderToken =
+      process.env.ORBIS_RENDER_TOKEN
+
+    process.env.ORBIS_RENDER_TOKEN =
+      'render-cache-test-token'
+
+    const renderRequests: string[] = []
+
+    globalThis.fetch = (async (
+      input: string | URL | Request,
+    ) => {
+      const url = String(input)
+
+      if (url.startsWith('https://api.render.com/')) {
+        renderRequests.push(url)
+
+        if (url.includes('/deploys?')) {
+          return new Response(
+            JSON.stringify([
+              {
+                deploy: {
+                  id: 'dep-cache-test',
+                  status: 'live',
+                  commit: {
+                    id: 'render-cache-head',
+                  },
+                },
+              },
+            ]),
+            {
+              status: 200,
+              headers: {
+                'content-type': 'application/json',
+              },
+            },
+          )
+        }
+
+        return new Response(
+          JSON.stringify({
+            id: 'srv-dai144uq1p3s73ajc1ag',
+            name: 'orbis-admin-staging',
+            branch: 'staging',
+            suspended: 'not_suspended',
+            serviceDetails: {
+              region: 'singapore',
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+            },
+          },
+        )
+      }
+
+      if (url.includes('/branches/')) {
+        return new Response(
+          JSON.stringify({
+            commit: {
+              sha: 'github-cache-test-head',
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+            },
+          },
+        )
+      }
+
+      return new Response(
+        JSON.stringify({
+          check_runs: [
+            {
+              status: 'completed',
+              conclusion: 'success',
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        },
+      )
+    }) as typeof fetch
+
+    const app = buildApp()
+
+    try {
+      const first = await app.inject({
+        method: 'GET',
+        url: '/api/v1/projects',
+      })
+      const second = await app.inject({
+        method: 'GET',
+        url: '/api/v1/projects',
+      })
+
+      expect(first.statusCode).toBe(200)
+      expect(second.statusCode).toBe(200)
+
+      expect(
+        first.json().projects[0].signals.deployment,
+      ).toBe('healthy')
+
+      expect(
+        second.json().projects[0].signals.deployment,
+      ).toBe('healthy')
+
+      expect(renderRequests).toHaveLength(2)
+    } finally {
+      globalThis.fetch = originalFetch
+
+      if (originalRenderToken === undefined) {
+        delete process.env.ORBIS_RENDER_TOKEN
+      } else {
+        process.env.ORBIS_RENDER_TOKEN =
+          originalRenderToken
+      }
+
       await app.close()
     }
   })
