@@ -45,6 +45,14 @@ export type ProductIdentityReference = {
   roles: readonly string[]
 }
 
+export type IdentityActionContext = {
+  orbisActionId: string
+  sourceProjectId: string
+  idempotencyKey: string
+  actorKind: 'product_service' | 'admin_service' | 'system'
+  actorReference: string
+}
+
 export type OrbisIdentity = {
   orbisIdentityId: string
   displayId: string
@@ -62,8 +70,10 @@ export type IdentityObservation = {
   subjectKind: IdentitySubjectKind
   displayName: string
   phone?: string
+  phoneAssurance?: IdentityIdentifierAssurance
   phoneCountryCallingCode?: string
   email?: string
+  emailAssurance?: IdentityIdentifierAssurance
   source: ProductIdentityReference
 }
 
@@ -86,4 +96,5 @@ export type IdentityResolution = {
     | 'single_identifier_match'
     | 'multiple_identifier_matches'
     | 'subject_kind_conflict'
+    | 'lifecycle_conflict'
 }
