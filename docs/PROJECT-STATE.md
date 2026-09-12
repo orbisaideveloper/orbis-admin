@@ -2,7 +2,7 @@
 
 This file is the canonical current-state handoff for future chats, coding agents, and contributors. It is intentionally concise enough to read at the start of every ORBIS Admin work session.
 
-**Last updated:** 2026-09-11
+**Last updated:** 2026-09-12
 
 ## Session-start rule
 
@@ -26,7 +26,7 @@ Do not rely on this file alone for live external state. Before a mutating GitHub
 - Default/protected branch: `main`
 - ORBIS Admin work must not modify another ORBIS repository unless the user explicitly asks for that repository in the current task.
 
-## Verified baseline after PR #5
+## Verified baseline after PR #6
 
 PR #4, `feat: add first ORBIS Admin V1 application scaffold`, is merged.
 
@@ -42,11 +42,15 @@ Verified PR #5 architecture-lock head:
 
 `f425ea876ddcb01256a9ecb6b3fd5f4038d2d9bf`
 
-Verified current `main` after PR #5:
+Verified PR #6 Project Registry / Real Read Model head:
 
-`ca4a30a7d3537a5665cfab7e040da01fb2d5f224`
+`69803a2064cd522dcf85f19c6faf4751d550e265`
 
-The merged baseline provides the responsive owner/admin command-center shell, project/category/detail navigation, safe Copy controls, Fastify `/health`, shared contracts, strict application tooling, and the accepted control-plane architecture lock.
+Verified PR #6 merge commit and current `main`:
+
+`37158f20ff018ebace6eabd2a543ad7dd96a328f`
+
+The merged baseline now provides the responsive owner/admin command-center shell, project/category/detail navigation, safe Copy controls, shared TypeScript contracts, the canonical provider-neutral Project Registry, `GET /api/v1/projects`, web consumption of that API, Fastify `/health`, and a tested same-origin Fastify + React production runtime.
 
 ### GitHub governance and CI
 
@@ -64,7 +68,7 @@ The authoritative staging service is `orbis-admin-staging` for repository `orbis
 
 Staging URL: `https://orbis-admin-staging.onrender.com`
 
-The latest reviewed staging artifact is the architecture-lock commit `f425ea876ddcb01256a9ecb6b3fd5f4038d2d9bf`. The public mobile staging UI was reviewed successfully. The service still uses the earlier Vite-preview build/start commands until the Project Registry / Fastify runtime PR is approved for staging.
+The latest reviewed staging artifact is PR #6 head `69803a2064cd522dcf85f19c6faf4751d550e265`. The existing staging service now uses the root production build plus Fastify start runtime (`npm ci --ignore-scripts && npm run build`, then `npm start`) with health check path `/health`. Live smoke verification passed for `/`, `/health`, `/api/v1/projects`, `/projects/orbis-admin`, a built JavaScript asset, and reserved API/asset 404 behavior.
 
 Current accepted pre-merge flow is:
 
@@ -85,7 +89,7 @@ Ephemeral per-PR Render previews are not currently required. Production Admin Re
 
 ### Known immediate V1 limitations
 
-The current `main` shell still contains static/demo operational state. The in-progress Project Registry branch moves canonical project records to the API, makes the web consume `/api/v1/projects`, and adds a tested same-origin Fastify + React runtime. Live GitHub, Render, Sonar, and product-health adapters are still intentionally not implemented, so provider signals must remain `unknown` until a real adapter supplies validated data.
+The Project Registry / Real Read Model foundation is now merged to `main` and verified on staging. Live GitHub, Render, Sonar, and product-health adapters are still intentionally not implemented, so provider signals must remain `unknown` until a real server-side adapter supplies validated data. The dashboard therefore has a real canonical registry/runtime foundation but does not yet present live provider status.
 
 ## Confirmed product vision
 
@@ -142,21 +146,23 @@ PR #3 has been merged to `main`; no production application code was part of that
 
 PR #4 is merged and the first V1 owner/admin shell is deployable.
 
-### Step 5 — Staging / delivery foundation — IN PROGRESS
+### Step 5 — Staging / read-only control plane — IN PROGRESS
 
-The dedicated `staging` branch and `orbis-admin-staging` manual Render service exist and have been used for pre-merge review.
+The dedicated `staging` branch and `orbis-admin-staging` manual Render service exist and are verified for pre-merge review.
 
-Current Step 5 delivery slice is the Project Registry + Real Read Model foundation:
+The Project Registry + Real Read Model foundation is COMPLETE:
 
 1. shared provider-neutral Project Registry contracts,
 2. canonical API-side registry,
 3. `GET /api/v1/projects`,
 4. web reads the registry through the API,
 5. same-origin Fastify runtime serves the API and built React application,
-6. staging validates the exact approved commit,
-7. then read-only providers are added one at a time: GitHub -> Render -> Sonar -> Health -> unified status/alerts.
+6. exact approved PR #6 commit validated on staging,
+7. live staging smoke verified before explicit merge.
 
-Do not pull central identity DB implementation, authentication rewrite, Python, or privileged write controls into this slice. Production service/setup remains explicit and deferred until separately approved.
+The next Step 5 work adds read-only providers one at a time in this order: GitHub -> Render -> Sonar -> Health -> unified status/alerts.
+
+Do not pull central identity DB implementation, authentication rewrite, Python application runtime, or privileged write controls into this slice. Production service/setup remains explicit and deferred until separately approved.
 
 ## What comes after the current Step 5 foundation
 
@@ -171,9 +177,11 @@ Implementation proceeds in deliberate phases:
 
 ## Current exact next action
 
-Finish the Project Registry / Real Read Model PR from `feat/project-registry-read-model`, get GitHub/Sonar CI green, promote that exact approved commit to the `staging` branch, change the existing `orbis-admin-staging` Render service from Vite preview to the tested root build + Fastify start commands, and run live same-origin smoke checks for `/`, `/health`, `/api/v1/projects`, a deep React route, and a built asset.
+Start the first real read-only provider integration: **GitHub**.
 
-After staging is accepted, continue with the first real read-only provider adapter: GitHub.
+The first GitHub adapter slice should stay server-side and read-only. It should establish a typed provider boundary, validate/normalize external GitHub responses, and expose only the minimum repository/branch/commit/CI state needed to replace relevant `unknown` signals for registered repositories. GitHub credentials must never reach browser code. Provider failure must degrade safely to an explicit unknown/unavailable state rather than inventing green status.
+
+Keep this slice focused: no Render/Sonar adapter yet, no provider writes, no central identity database, no authentication rewrite, and no production deployment. Add targeted tests with 100% coverage for newly introduced/materially changed production behavior before PR review.
 
 ## Handoff/update discipline
 
