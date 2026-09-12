@@ -1,6 +1,6 @@
 # ORBIS Admin — Unique Identity Foundation
 
-**Status:** Domain contract and unapplied persistence checkpoint for PR #10
+**Status:** Reviewed, un-applied persistence checkpoint for PR #10
 
 ## Goal
 
@@ -29,23 +29,28 @@ permanent IDs for one person.
 
 1. A product observes a subject and supplies its local reference and role.
 2. Phone and email are normalized at the server boundary.
-3. With no strong identifier, the system may start a `provisional` identity.
-4. One unambiguous phone/email match resolves to the existing identity.
-5. Multiple matches or a person/organization conflict becomes
-   `review_required`; it never auto-merges.
+3. With no verified strong identifier, the system starts a `provisional`
+   identity.
+4. Only one unambiguous **verified** phone/email match to an `active` identity
+   resolves automatically.
+5. An observed-only input, multiple matches, a suspended identity, a broken
+   redirect, or a person/organization conflict becomes `review_required`;
+   it never auto-merges.
 6. Later identifiers and product references accumulate under the same canonical
    identity.
-7. An identity can become `active`, `suspended`, or `merged`, but its canonical
-   ID is never reassigned.
+7. An identity can become `active`, `suspended`, or `merged`, but its
+   canonical ID is never reassigned.
 
 Names are descriptive evidence, not unique identifiers. Two records are never
 automatically merged only because their names match.
 
 ## Identifier assurance
 
-An identifier begins as `observed`. A later proof flow may promote it to
-`verified`. Authentication and credential proof are separate from identity;
-this checkpoint does not add login, passwords, OTP, passkeys, or sessions.
+An identifier begins as `observed`. A later trusted proof flow may promote it
+to `verified`. Automatic resolution requires verification on the incoming
+observation and on the matching registry identifier. Authentication and
+credential proof are separate from identity; this checkpoint does not add
+login, passwords, OTP, passkeys, or sessions.
 
 Phone normalization never guesses a country. A product can provide an explicit
 default country calling code for a local-format number. International numbers
@@ -63,28 +68,33 @@ Each product keeps its own business row and records an explicit reference:
 There are no cross-database foreign keys. Product systems integrate through
 versioned API/event contracts and remain independently deployable.
 
-## Persistence contract
+## Persistence and write contract
 
-The dedicated ORBIS Admin database must enforce, at minimum:
+The dedicated ORBIS Admin database enforces, at minimum:
 
-- immutable canonical identity ID,
-- unique display ID,
-- normalized identifier uniqueness according to subject and lifecycle policy,
-- idempotent product reference uniqueness,
-- additive migrations,
-- merge lineage instead of destructive record replacement,
-- audit evidence for manual linking, unlinking, verification, and merging.
+- immutable canonical identity ID and display ID,
+- subject-kind/display-prefix alignment,
+- verified active phone/email uniqueness,
+- idempotent action records keyed by source project and request key,
+- append-only identity audit events,
+- product-reference history via revocation instead of destructive replacement,
+- a recorded, audited, active-target-only merge path,
+- additive migrations and indexed foreign-key lookup paths.
+
+A future server-side Identity API must process each write as one transaction:
+create or replay its idempotent action, perform the allowed mutation, write the
+audit evidence, and store the outcome. Event details must not contain secrets or
+raw identifiers.
 
 The additive raw PostgreSQL migration is located at
-`database/migrations/20260912150000_identity_foundation.sql`. It defines private
-identity, identifier, product-reference, and append-only merge-record tables.
-The migration is statically tested but has not been executed against or applied
-to any database. Provider selection, disposable SQL validation, narrowly scoped
-server roles, and deployment remain separate approval checkpoints.
+`database/migrations/20260912150000_identity_foundation.sql`. It is statically
+tested but has not been executed against or applied to any database. Provider
+selection, disposable SQL validation, narrowly scoped server roles, and
+deployment remain separate approval checkpoints.
 
 ## Explicitly deferred
 
-- Admin database/provider provisioning and migration application,
+- database migration application,
 - identity write API,
 - authentication and authorization,
 - customer login UI,
