@@ -27,6 +27,7 @@ export {
   identityLifecycleValues,
   identityResolutionOutcomeValues,
   identitySubjectKindValues,
+  type IdentityActionContext,
   type IdentityIdentifier,
   type IdentityIdentifierAssurance,
   type IdentityIdentifierKind,
