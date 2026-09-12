@@ -88,6 +88,15 @@ describe('identity normalization', () => {
       normalizedValue: '+919876543210',
       assurance: 'observed',
     }])
+
+    expect(observationIdentifiers(observation({
+      phone: undefined,
+      email: 'Raju@Example.com',
+    }))).toEqual([{
+      kind: 'email',
+      normalizedValue: 'raju@example.com',
+      assurance: 'observed',
+    }])
   })
 })
 
