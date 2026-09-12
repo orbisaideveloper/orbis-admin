@@ -194,7 +194,7 @@ describe('identity resolution', () => {
       [first, second],
     )).toMatchObject({
       outcome: 'review_required',
-      reason: 'lifecycle_conflict',
+      reason: 'multiple_identifier_matches',
     })
   })
 
