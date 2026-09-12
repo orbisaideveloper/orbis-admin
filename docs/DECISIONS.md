@@ -231,10 +231,12 @@ Before central identity/control data becomes production-critical, define backup 
 
 An ORBIS identity may begin as provisional when a product first observes a
 person or organization. Phone and email are mutable identifiers associated with
-the immutable canonical identity, not the identity itself. A single
-unambiguous normalized identifier may resolve to an existing identity;
-name-only similarity, multiple matches, or a person/organization mismatch must
-not trigger an automatic merge and instead requires review.
+the immutable canonical identity, not the identity itself. Only a single
+unambiguous normalized identifier that is verified by the trusted source and
+already verified in the registry may resolve automatically to an active
+identity. Name-only similarity, observed-only data, multiple matches, a
+suspended/invalid redirect, or a person/organization mismatch must not trigger
+an automatic merge and instead requires review.
 
 Person and organization subjects remain distinct. Product-local party,
 customer, seller, or other roles attach through explicit product references and
@@ -253,9 +255,13 @@ provider-specific database extension. Browser/public roles receive no direct
 identity access; RLS is enabled and forced before policies are introduced.
 
 Observed identifiers may coexist for conflict review, while one active verified
-phone/email value can belong to only one identity. Foreign-key lookup paths are
-indexed, destructive cascades are avoided, product references are idempotent,
-and merge evidence is append-only from ordinary application mutation paths.
+phone/email value can belong to only one identity. Automatic resolution requires
+verified assurance on both the incoming observation and stored registry value.
+Idempotent action records and append-only audit evidence preserve create, link,
+verify, revoke, and merge history. Foreign-key lookup paths are indexed,
+destructive cascades are avoided, product-reference history is revoked rather
+than overwritten, and merge evidence is append-only from ordinary application
+mutation paths.
 Database provisioning, grants/policies, migration application, and recovery
 validation require later explicit checkpoints.
 
