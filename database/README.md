@@ -7,29 +7,47 @@ Foundation, ORBIS Game, or another product database.
 ## Current state
 
 `migrations/20260912150000_identity_foundation.sql` is the first identity
-persistence contract. It is drafted and statically tested but has not been
-applied to any local, staging, or production database.
+persistence contract. It has been reviewed against PostgreSQL 17 / Supabase,
+statically tested, and remains unapplied to every database.
+
+This repository deliberately keeps provider-portable source migrations in
+`database/migrations`. For the dedicated Supabase project, a later approved
+live release must use a managed migration operation with the exact versioned
+SQL and then verify the recorded migration state. Do not paste this migration
+into a general SQL editor or apply it to a Foundation database.
 
 The migration is intentionally fail-closed:
 
 - identity objects live in a private `orbis_identity` schema,
-- public privileges are revoked,
+- public privileges and future default public grants are revoked,
 - RLS is enabled and forced without premature browser/client policies,
-- canonical and display IDs are immutable,
+- canonical and display IDs are immutable and display prefixes match subject kind,
 - verified active phone/email ownership is unique,
 - observed identifiers may coexist so conflicts can be reviewed safely,
-- product references are idempotent by product-local identity,
-- merge evidence is append-only from normal SQL mutation paths,
-- foreign-key lookup paths are indexed,
-- destructive cascades are not used.
+- only a matching **verified** identifier may produce automatic resolution,
+- request actions are idempotent per source project and request key,
+- create/link/verify/revoke/merge evidence has an append-only audit structure,
+- product references preserve history through revocation rather than deletion,
+- a merge requires matching immutable merge and audit evidence,
+- foreign-key lookup paths are indexed, and destructive cascades are not used.
 
 ## Application rule
 
 The API must generate UUIDv7 values and pass them explicitly. The migration does
 not depend on a provider-specific UUIDv7 extension.
 
-Before applying this migration, select and verify a dedicated ORBIS Admin
-PostgreSQL database, validate the SQL in a disposable standard-Linux or provider
-environment, define narrowly scoped server roles/policies, and preserve a
-timestamped Downloads report. Do not run Prisma engines in native Android
-Termux.
+Every future identity write must run server-side in one transaction:
+
+1. establish or replay the idempotent action,
+2. mutate the applicable identity/identifier/reference record,
+3. record the corresponding append-only audit event,
+4. mark the action outcome.
+
+No browser role receives direct access. The later identity API must define
+narrowly scoped server database access/policies before any write endpoint is
+enabled.
+
+Before applying this migration, verify the dedicated ORBIS Admin PostgreSQL
+target, validate the SQL in a disposable standard-Linux or provider environment,
+preserve a timestamped Downloads report, and obtain explicit user approval. Do
+not run Prisma engines in native Android Termux.
