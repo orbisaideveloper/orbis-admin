@@ -92,8 +92,8 @@ Ephemeral per-PR Render previews are not currently required. Production Admin Re
 - first application scaffold: merged,
 - permanent staging service: live/manual deploy,
 - production Admin service: not yet established,
-- Admin database: not yet implemented,
-- central identity persistence: not yet implemented,
+- Admin database: dedicated Supabase project exists but has no applied schema,
+- central identity persistence: reviewed source contract exists only in draft PR #10,
 - owner/admin auth/SSO: not yet implemented,
 - passkey/WebAuthn: future-ready, implementation deferred,
 - privileged provider/product writes: not implemented.
@@ -184,24 +184,48 @@ Implementation proceeds in deliberate phases:
 - **Admin DB / ORBIS Identity:** dedicated Admin DB, UUIDv7 identities, opaque display IDs, memberships, integration metadata and control-plane configuration. Product business data stays in product databases.
 - **Authentication / Authorization:** central login/session, scoped capabilities, roles as capability bundles, server-side authorization and append-only audit baseline. Passkey implementation remains a later focused security phase.
 - **Controlled actions:** only after read-only/audit boundaries are proven; low-risk mutations first, production publish/deploy later, destructive/security/recovery controls last, with emergency write-disable controls in place.
-- **Enterprise hardening:** tamper-evident audit when technically justified, formal metrics/traces, DR drills/RPO/RTO, SBOM/provenance/signing, dependency/license maturity, mature passkey/re-auth flows.
+- **Enterprise hardening:** tamper-evident audit when technically justified, formal metrics/traces, DR drills/RPO/RTO, SBOM/provena## Current exact next action
 
-## Current exact next action
+PR #10, **Unique ORBIS ID Foundation**, is a draft and must remain unmerged
+until its database checkpoint is complete.
 
-Build PR #10, **Unique ORBIS ID Foundation**, in bounded checkpoints.
+The feature branch now provides:
 
-The first two checkpoints define the shared identity domain, UUIDv7 and opaque
-display-ID generation, identifier normalization, progressive resolution, safe
-person/organization separation, product references, and a private additive raw
-PostgreSQL persistence contract. Targeted tests cover the new TypeScript behavior
-and the migration's required static security/constraint contract.
+- UUIDv7 canonical identities and subject-matched opaque display IDs,
+- verified-only automatic resolution with observed/name-only data failing safe
+  to provisional/review,
+- idempotent source action records,
+- append-only audit-event and merge evidence structures,
+- non-destructive identifier/reference history,
+- private schema, revoked public grants, forced RLS, and static migration tests.
 
-The migration is not applied anywhere. Next, review this checkpoint, select the
-dedicated ORBIS Admin PostgreSQL provider, validate the migration against a
-disposable database, and design the narrowly scoped server access/policy path.
-Do not add an identity write endpoint, authentication, real customer data,
-automatic merge, production deployment, or provider write capability before
-those boundaries are accepted and verified.
+The draft PR quality run `34707661049` passed lint, type-check, tests,
+100% V8 coverage, Knip, JSCPD, dependency audit, production build, SonarQube
+Cloud, and the strict zero-issue Sonar gate.
+
+The dedicated Supabase target is **only**:
+
+- organization: `ORBIS Admin`,
+- project: `orbis admin`,
+- project ref: `aqcwhqdzniruvoqwfsij`,
+- region: `ap-northeast-2` (Seoul).
+
+It is healthy and empty; no migration or customer data has been applied.
+Foundation main/staging are never migration targets for this work.
+
+Next, before any live migration:
+
+1. set the new project Data API to OFF and automatic table exposure to OFF,
+2. validate the two source migrations in a disposable PostgreSQL/Supabase
+   environment and preserve the timestamped report,
+3. provide an explicit user approval checkpoint naming the target, SQL effects,
+   verification evidence, and recovery plan,
+4. only then apply the migrations to the dedicated ORBIS Admin project and
+   verify tables, constraints, grants, RLS, advisors, and migration history.
+
+Do not add an identity write endpoint, authentication, Foundation integration,
+customer import, production deployment, or auto-merge before those boundaries
+are separately approved and verified.
 
 ## Handoff/update discipline
 
