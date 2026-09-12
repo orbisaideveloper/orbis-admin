@@ -1,7 +1,12 @@
 import type {
+  GitHubRegistration,
   ProjectRegistryProject,
   ProjectRegistryResponse,
 } from '@orbis-admin/contracts'
+import {
+  createGitHubReader,
+  type GitHubReadState,
+} from '../providers/github.js'
 
 const unknownSignals = {
   ci: 'unknown',
@@ -102,10 +107,48 @@ export const registeredProjects = [
   },
 ] as const satisfies readonly ProjectRegistryProject[]
 
-export const readProjectRegistry = (
-  now: Date = new Date(),
-): ProjectRegistryResponse => ({
-  schemaVersion: 'v1',
-  generatedAt: now.toISOString(),
-  projects: registeredProjects,
+type GitHubProjectReader = (
+  registration: GitHubRegistration,
+) => Promise<GitHubReadState>
+
+const withGitHubState = (
+  project: ProjectRegistryProject,
+  githubState: GitHubReadState,
+): ProjectRegistryProject => ({
+  ...project,
+  signals: {
+    ...project.signals,
+    ci: githubState.ci,
+  },
 })
+
+export const readProjectRegistry = async (
+  now: Date = new Date(),
+  readGitHub?: GitHubProjectReader,
+): Promise<ProjectRegistryResponse> => {
+  const githubReader =
+    readGitHub ??
+    createGitHubReader({
+      token: process.env.ORBIS_GITHUB_TOKEN,
+    })
+
+  const projects = await Promise.all(
+    registeredProjects.map(async (project) => {
+      if (!('github' in project.providers)) {
+        return project
+      }
+
+      const githubState = await githubReader(
+        project.providers.github,
+      )
+
+      return withGitHubState(project, githubState)
+    }),
+  )
+
+  return {
+    schemaVersion: 'v1',
+    generatedAt: now.toISOString(),
+    projects,
+  }
+}
