@@ -190,16 +190,18 @@ Implementation proceeds in deliberate phases:
 
 Build PR #10, **Unique ORBIS ID Foundation**, in bounded checkpoints.
 
-The first checkpoint defines the shared identity domain, UUIDv7 and opaque
+The first two checkpoints define the shared identity domain, UUIDv7 and opaque
 display-ID generation, identifier normalization, progressive resolution, safe
-person/organization separation, product references, targeted tests, and the
-durable contract in `docs/IDENTITY-FOUNDATION.md`.
+person/organization separation, product references, and a private additive raw
+PostgreSQL persistence contract. Targeted tests cover the new TypeScript behavior
+and the migration's required static security/constraint contract.
 
-Do not add a database provider, identity write endpoint, authentication, real
-customer data, automatic merge, production deployment, or provider write
-capability in this checkpoint. After its contracts and tests are accepted,
-select the dedicated ORBIS Admin database path and implement additive schema and
-migrations in the next checkpoint.
+The migration is not applied anywhere. Next, review this checkpoint, select the
+dedicated ORBIS Admin PostgreSQL provider, validate the migration against a
+disposable database, and design the narrowly scoped server access/policy path.
+Do not add an identity write endpoint, authentication, real customer data,
+automatic merge, production deployment, or provider write capability before
+those boundaries are accepted and verified.
 
 ## Handoff/update discipline
 

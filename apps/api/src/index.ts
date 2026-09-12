@@ -98,3 +98,15 @@ export async function startServer(
 
   return app
 }
+
+export {
+  createIdentityDisplayId,
+  createUuidV7,
+} from './identity/identifiers.js'
+
+export {
+  normalizeEmail,
+  normalizePhone,
+  observationIdentifiers,
+  resolveIdentityObservation,
+} from './identity/resolution.js'

@@ -46,14 +46,14 @@ export type ProductIdentityReference = {
 }
 
 export type OrbisIdentity = {
-  orbisUserId: string
+  orbisIdentityId: string
   displayId: string
   subjectKind: IdentitySubjectKind
   lifecycle: IdentityLifecycle
   displayName: string
   identifiers: readonly IdentityIdentifier[]
   productReferences: readonly ProductIdentityReference[]
-  mergedIntoOrbisUserId: string | null
+  mergedIntoOrbisIdentityId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -78,8 +78,8 @@ export type IdentityResolutionOutcome =
 
 export type IdentityResolution = {
   outcome: IdentityResolutionOutcome
-  matchedOrbisUserId: string | null
-  candidateOrbisUserIds: readonly string[]
+  matchedOrbisIdentityId: string | null
+  candidateOrbisIdentityIds: readonly string[]
   reason:
     | 'no_strong_identifier'
     | 'no_match'

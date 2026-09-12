@@ -161,7 +161,7 @@ The visual direction is the approved high-tech ORBIS control-room style: dark hi
 
 **Status:** Accepted
 
-ORBIS-owned canonical internal IDs use UUIDv7 where a durable entity ID is required, including the direction for `orbis_user_id`, `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`.
+ORBIS-owned canonical internal IDs use UUIDv7 where a durable entity ID is required, including the direction for `orbis_identity_id` (the shared person/organization identity key), `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`.
 
 Canonical IDs are immutable and credential-independent. Human-readable display IDs are separate and non-authoritative. Provider-native IDs remain separate fields. Observability `trace_id` is separate from `orbis_action_id`.
 
@@ -239,7 +239,25 @@ not trigger an automatic merge and instead requires review.
 Person and organization subjects remain distinct. Product-local party,
 customer, seller, or other roles attach through explicit product references and
 do not redefine the central subject. Authentication credentials and identifier
-verification remain separate security concerns.
+verification remain separate security concerns. `orbis_identity_id` is the one
+canonical relation key for both subject kinds; for a person, it is that person's
+permanent ORBIS user identity rather than a second competing ID.
+
+## ADR-025 — Identity persistence starts private and provider-portable
+
+**Status:** Accepted
+
+The identity foundation begins as additive raw PostgreSQL in a private
+`orbis_identity` schema. Application-generated UUIDv7 values avoid requiring a
+provider-specific database extension. Browser/public roles receive no direct
+identity access; RLS is enabled and forced before policies are introduced.
+
+Observed identifiers may coexist for conflict review, while one active verified
+phone/email value can belong to only one identity. Foreign-key lookup paths are
+indexed, destructive cascades are avoided, product references are idempotent,
+and merge evidence is append-only from ordinary application mutation paths.
+Database provisioning, grants/policies, migration application, and recovery
+validation require later explicit checkpoints.
 
 ## Future decisions to formalize
 

@@ -1,6 +1,6 @@
 # ORBIS Admin — Unique Identity Foundation
 
-**Status:** First domain-contract checkpoint for PR #10
+**Status:** Domain contract and unapplied persistence checkpoint for PR #10
 
 ## Goal
 
@@ -19,6 +19,11 @@ the system to silently turn an organization into a person or vice versa.
 - organizations use the human-facing `ORB-O-...` display prefix,
 - both use an immutable UUIDv7 canonical identifier internally,
 - display IDs are opaque convenience references and are not relational keys.
+
+The universal database/API field is `orbis_identity_id` because the subject can
+be either a person or an organization. A person's permanent ORBIS user identity
+is represented by that same canonical value; this avoids creating two competing
+permanent IDs for one person.
 
 ## Progressive identity lifecycle
 
@@ -58,7 +63,7 @@ Each product keeps its own business row and records an explicit reference:
 There are no cross-database foreign keys. Product systems integrate through
 versioned API/event contracts and remain independently deployable.
 
-## Persistence contract for the next checkpoint
+## Persistence contract
 
 The dedicated ORBIS Admin database must enforce, at minimum:
 
@@ -70,12 +75,16 @@ The dedicated ORBIS Admin database must enforce, at minimum:
 - merge lineage instead of destructive record replacement,
 - audit evidence for manual linking, unlinking, verification, and merging.
 
-The exact database provider and migration implementation are deliberately not
-selected by this contract checkpoint.
+The additive raw PostgreSQL migration is located at
+`database/migrations/20260912150000_identity_foundation.sql`. It defines private
+identity, identifier, product-reference, and append-only merge-record tables.
+The migration is statically tested but has not been executed against or applied
+to any database. Provider selection, disposable SQL validation, narrowly scoped
+server roles, and deployment remain separate approval checkpoints.
 
 ## Explicitly deferred
 
-- Admin database/provider setup and migrations,
+- Admin database/provider provisioning and migration application,
 - identity write API,
 - authentication and authorization,
 - customer login UI,

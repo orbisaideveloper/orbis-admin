@@ -142,7 +142,7 @@ Audit logs should not store secrets.
 
 ### Canonical ORBIS identifiers
 
-ORBIS-owned canonical internal identifiers use UUIDv7 where a durable entity identifier is required. The direction applies to `orbis_user_id`, `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`.
+ORBIS-owned canonical internal identifiers use UUIDv7 where a durable entity identifier is required. The direction applies to `orbis_identity_id`, `orbis_project_id`, `orbis_module_id`, `orbis_deployment_id`, `orbis_audit_id`, and `orbis_action_id`. `orbis_identity_id` is the shared canonical key for a person or organization; for a person, this is the permanent ORBIS user identity and not a second competing ID.
 
 These IDs are immutable and are not derived from mutable email, phone, username, device, password, or credential data. A separate opaque display reference such as `ORB-U-7K4M92QX` may be shown to people, but it is not the relational identity.
 

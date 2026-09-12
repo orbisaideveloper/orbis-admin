@@ -30,7 +30,7 @@ const observation = (
 const identity = (
   overrides: Partial<OrbisIdentity> = {},
 ): OrbisIdentity => ({
-  orbisUserId: '01992aa0-0000-7000-8000-000000000001',
+  orbisIdentityId: '01992aa0-0000-7000-8000-000000000001',
   displayId: 'ORB-U-7K4M92QX',
   subjectKind: 'person',
   lifecycle: 'active',
@@ -41,7 +41,7 @@ const identity = (
     assurance: 'verified',
   }],
   productReferences: [],
-  mergedIntoOrbisUserId: null,
+  mergedIntoOrbisIdentityId: null,
   createdAt: '2026-09-12T00:00:00.000Z',
   updatedAt: '2026-09-12T00:00:00.000Z',
   ...overrides,
@@ -83,8 +83,8 @@ describe('identity resolution', () => {
       [],
     )).toEqual({
       outcome: 'create_provisional',
-      matchedOrbisUserId: null,
-      candidateOrbisUserIds: [],
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: [],
       reason: 'no_strong_identifier',
     })
   })
@@ -100,15 +100,15 @@ describe('identity resolution', () => {
     const result = resolveIdentityObservation(observation(), [
       identity(),
       identity({
-        orbisUserId: '01992aa0-0000-7000-8000-000000000002',
+        orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
         lifecycle: 'merged',
       }),
     ])
 
     expect(result).toEqual({
       outcome: 'match',
-      matchedOrbisUserId: '01992aa0-0000-7000-8000-000000000001',
-      candidateOrbisUserIds: [
+      matchedOrbisIdentityId: '01992aa0-0000-7000-8000-000000000001',
+      candidateOrbisIdentityIds: [
         '01992aa0-0000-7000-8000-000000000001',
       ],
       reason: 'single_identifier_match',
@@ -119,13 +119,13 @@ describe('identity resolution', () => {
     const result = resolveIdentityObservation(observation(), [
       identity(),
       identity({
-        orbisUserId: '01992aa0-0000-7000-8000-000000000002',
+        orbisIdentityId: '01992aa0-0000-7000-8000-000000000002',
       }),
     ])
 
     expect(result).toMatchObject({
       outcome: 'review_required',
-      matchedOrbisUserId: null,
+      matchedOrbisIdentityId: null,
       reason: 'multiple_identifier_matches',
     })
   })

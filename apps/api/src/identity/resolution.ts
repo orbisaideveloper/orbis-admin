@@ -76,8 +76,8 @@ export const resolveIdentityObservation = (
   if (observedIdentifiers.length === 0) {
     return {
       outcome: 'create_provisional',
-      matchedOrbisUserId: null,
-      candidateOrbisUserIds: [],
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: [],
       reason: 'no_strong_identifier',
     }
   }
@@ -94,19 +94,21 @@ export const resolveIdentityObservation = (
   if (candidates.length === 0) {
     return {
       outcome: 'create_provisional',
-      matchedOrbisUserId: null,
-      candidateOrbisUserIds: [],
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: [],
       reason: 'no_match',
     }
   }
 
-  const candidateIds = candidates.map(({ orbisUserId }) => orbisUserId)
+  const candidateIds = candidates.map(
+    ({ orbisIdentityId }) => orbisIdentityId,
+  )
 
   if (candidates.length > 1) {
     return {
       outcome: 'review_required',
-      matchedOrbisUserId: null,
-      candidateOrbisUserIds: candidateIds,
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: candidateIds,
       reason: 'multiple_identifier_matches',
     }
   }
@@ -116,16 +118,16 @@ export const resolveIdentityObservation = (
   if (candidate.subjectKind !== observation.subjectKind) {
     return {
       outcome: 'review_required',
-      matchedOrbisUserId: null,
-      candidateOrbisUserIds: candidateIds,
+      matchedOrbisIdentityId: null,
+      candidateOrbisIdentityIds: candidateIds,
       reason: 'subject_kind_conflict',
     }
   }
 
   return {
     outcome: 'match',
-    matchedOrbisUserId: candidate.orbisUserId,
-    candidateOrbisUserIds: candidateIds,
+    matchedOrbisIdentityId: candidate.orbisIdentityId,
+    candidateOrbisIdentityIds: candidateIds,
     reason: 'single_identifier_match',
   }
 }
