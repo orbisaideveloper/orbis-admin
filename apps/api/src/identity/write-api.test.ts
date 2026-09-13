@@ -11,17 +11,23 @@ const migrationPath = resolve(
   repositoryRoot,
   'database/migrations/20260913100000_identity_write_api.sql',
 )
+const concurrencyMigrationPath = resolve(
+  repositoryRoot,
+  'database/migrations/20260913101000_identity_write_api_concurrency.sql',
+)
 const edgeFunctionPath = resolve(
   repositoryRoot,
   'supabase/functions/orbis-identity-write/index.ts',
 )
 
 let migration = ''
+let concurrencyMigration = ''
 let edgeFunction = ''
 
 beforeAll(async () => {
-  ;[migration, edgeFunction] = await Promise.all([
+  ;[migration, concurrencyMigration, edgeFunction] = await Promise.all([
     readFile(migrationPath, 'utf8'),
+    readFile(concurrencyMigrationPath, 'utf8'),
     readFile(edgeFunctionPath, 'utf8'),
   ])
 })
@@ -45,6 +51,19 @@ describe('identity write API contract', () => {
     expect(migration).toContain("'product_reference_linked'")
     expect(migration).toContain("status = 'completed'")
     expect(migration).toContain("status = 'review_required'")
+  })
+
+  it('serializes concurrent requests with the same idempotency key', () => {
+    expect(concurrencyMigration).toContain(
+      ') rename to resolve_observation_write_unlocked;',
+    )
+    expect(concurrencyMigration).toContain('pg_advisory_xact_lock')
+    expect(concurrencyMigration).toContain(
+      'existing_action.request_fingerprint <> p_request_fingerprint',
+    )
+    expect(concurrencyMigration).toContain(
+      'orbis_identity.resolve_observation_write_unlocked(',
+    )
   })
 
   it('keeps the service-key table private and fail closed', () => {
