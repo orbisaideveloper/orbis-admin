@@ -1,6 +1,14 @@
 begin;
 
-create function orbis_identity.resolve_observation_write_safe(
+alter function orbis_identity.resolve_observation_write(
+  uuid,
+  jsonb,
+  text,
+  uuid,
+  text
+) rename to resolve_observation_write_unlocked;
+
+create function orbis_identity.resolve_observation_write(
   p_action_id uuid,
   p_request jsonb,
   p_request_fingerprint text,
@@ -13,14 +21,8 @@ security definer
 set search_path = pg_catalog
 as $$
 declare
-  source_project_id text := nullif(
-    btrim(p_request->>'source_project_id'),
-    ''
-  );
-  idempotency_key text := nullif(
-    btrim(p_request->>'idempotency_key'),
-    ''
-  );
+  source_project_id text := nullif(btrim(p_request->>'source_project_id'), '');
+  idempotency_key text := nullif(btrim(p_request->>'idempotency_key'), '');
   existing_action orbis_identity.identity_actions%rowtype;
 begin
   if source_project_id is null or idempotency_key is null then
@@ -28,10 +30,7 @@ begin
   end if;
 
   perform pg_advisory_xact_lock(
-    hashtextextended(
-      source_project_id || ':' || idempotency_key,
-      0
-    )
+    hashtextextended(source_project_id || ':' || idempotency_key, 0)
   );
 
   select *
@@ -58,7 +57,7 @@ begin
     );
   end if;
 
-  return orbis_identity.resolve_observation_write(
+  return orbis_identity.resolve_observation_write_unlocked(
     p_action_id,
     p_request,
     p_request_fingerprint,
@@ -68,7 +67,14 @@ begin
 end;
 $$;
 
-revoke all on function orbis_identity.resolve_observation_write_safe(
+revoke all on function orbis_identity.resolve_observation_write_unlocked(
+  uuid,
+  jsonb,
+  text,
+  uuid,
+  text
+) from public;
+revoke all on function orbis_identity.resolve_observation_write(
   uuid,
   jsonb,
   text,
@@ -76,7 +82,7 @@ revoke all on function orbis_identity.resolve_observation_write_safe(
   text
 ) from public;
 
-comment on function orbis_identity.resolve_observation_write_safe(
+comment on function orbis_identity.resolve_observation_write(
   uuid,
   jsonb,
   text,
