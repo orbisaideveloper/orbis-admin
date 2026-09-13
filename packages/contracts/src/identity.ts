@@ -86,15 +86,35 @@ export const identityResolutionOutcomeValues = [
 export type IdentityResolutionOutcome =
   (typeof identityResolutionOutcomeValues)[number]
 
+export type IdentityResolutionReason =
+  | 'no_strong_identifier'
+  | 'no_match'
+  | 'single_identifier_match'
+  | 'multiple_identifier_matches'
+  | 'subject_kind_conflict'
+  | 'lifecycle_conflict'
+  | 'product_reference_match'
+  | 'product_reference_conflict'
+
 export type IdentityResolution = {
   outcome: IdentityResolutionOutcome
   matchedOrbisIdentityId: string | null
   candidateOrbisIdentityIds: readonly string[]
-  reason:
-    | 'no_strong_identifier'
-    | 'no_match'
-    | 'single_identifier_match'
-    | 'multiple_identifier_matches'
-    | 'subject_kind_conflict'
-    | 'lifecycle_conflict'
+  reason: IdentityResolutionReason
+}
+
+export type IdentityWriteRequest = IdentityObservation & {
+  sourceProjectId: string
+  idempotencyKey: string
+  actorReference: string
+}
+
+export type IdentityWriteResponse = {
+  outcome: IdentityResolutionOutcome
+  orbisIdentityId: string | null
+  displayId: string | null
+  lifecycle: IdentityLifecycle | null
+  candidateOrbisIdentityIds: readonly string[]
+  reason: IdentityResolutionReason
+  replayed: boolean
 }
