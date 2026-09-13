@@ -29,6 +29,14 @@
       "project": [
         "src/**/*.ts"
       ]
+    },
+    "supabase/functions/orbis-identity-write": {
+      "entry": [
+        "index.ts"
+      ],
+      "project": [
+        "index.ts"
+      ]
     }
   }
 }
