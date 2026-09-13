@@ -114,13 +114,7 @@ jobs:
               "$STAGING_URL/api/v1/projects"
           )"
 
-          printf '%s' "$projects" |
-          python3 -c '
-import json,sys
-body=json.load(sys.stdin)
-assert body.get("schemaVersion") == "v1"
-assert isinstance(body.get("projects"), list)
-'
+          printf '%s' "$projects" | python3 -c 'import json,sys; body=json.load(sys.stdin); assert body.get("schemaVersion") == "v1"; assert isinstance(body.get("projects"), list)'
 
           root_code="$(
             curl -sS \
