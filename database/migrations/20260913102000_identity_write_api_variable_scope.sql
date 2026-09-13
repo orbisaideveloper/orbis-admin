@@ -21,7 +21,7 @@ begin
   end if;
 
   execute format(
-    'create or replace function orbis_identity.resolve_observation_write_unlocked(uuid, jsonb, text, uuid, text) returns jsonb language plpgsql security definer set search_path = pg_catalog as %L',
+    'create or replace function orbis_identity.resolve_observation_write_unlocked(p_action_id uuid, p_request jsonb, p_request_fingerprint text, p_new_identity_id uuid, p_new_display_id text) returns jsonb language plpgsql security definer set search_path = pg_catalog as %L',
     E'#variable_conflict use_variable\n' || function_body
   );
 
@@ -38,7 +38,7 @@ begin
   end if;
 
   execute format(
-    'create or replace function orbis_identity.resolve_observation_write(uuid, jsonb, text, uuid, text) returns jsonb language plpgsql security definer set search_path = pg_catalog as %L',
+    'create or replace function orbis_identity.resolve_observation_write(p_action_id uuid, p_request jsonb, p_request_fingerprint text, p_new_identity_id uuid, p_new_display_id text) returns jsonb language plpgsql security definer set search_path = pg_catalog as %L',
     E'#variable_conflict use_variable\n' || function_body
   );
 end
