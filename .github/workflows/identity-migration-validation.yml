@@ -1,0 +1,179 @@
+name: ORBIS Identity Migration Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    paths:
+      - database/migrations/20260912150000_identity_foundation.sql
+      - database/migrations/20260912160000_identity_action_guards.sql
+      - database/verification/identity_foundation_disposable.sql
+      - .github/workflows/identity-migration-validation.yml
+  push:
+    branches:
+      - main
+    paths:
+      - database/migrations/20260912150000_identity_foundation.sql
+      - database/migrations/20260912160000_identity_action_guards.sql
+      - database/verification/identity_foundation_disposable.sql
+      - .github/workflows/identity-migration-validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    orbis-identity-db-${{
+      github.event.pull_request.number || github.ref
+    }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-17-validation:
+    name: PostgreSQL 17.6 Disposable Migration Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orbis_identity_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd
+          "pg_isready -U postgres -d orbis_identity_disposable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Ensure PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+
+          psql --version
+
+      - name: Apply migrations and verify real database behavior
+        shell: bash
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -o pipefail
+
+          REPORT="identity-db-validation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.txt"
+
+          {
+            set -Eeuo pipefail
+
+            echo "=== ORBIS IDENTITY DISPOSABLE DB VALIDATION ==="
+            echo "Repository: $GITHUB_REPOSITORY"
+            echo "Commit:     $GITHUB_SHA"
+            echo "Event:      $GITHUB_EVENT_NAME"
+            echo
+
+            PSQL=(
+              psql
+              -X
+              -h 127.0.0.1
+              -p 5432
+              -U postgres
+              -d orbis_identity_disposable
+              -v ON_ERROR_STOP=1
+            )
+
+            echo "## PostgreSQL server"
+            SERVER_VERSION="$(
+              "${PSQL[@]}" -Atc "show server_version"
+            )"
+
+            echo "Server version: $SERVER_VERSION"
+
+            case "$SERVER_VERSION" in
+              17.6*)
+                echo "POSTGRES_VERSION_CONTRACT=PASS"
+                ;;
+              *)
+                echo "ERROR: expected PostgreSQL 17.6.x"
+                exit 31
+                ;;
+            esac
+
+            echo
+            echo "## Migration hashes"
+            sha256sum \
+              database/migrations/20260912150000_identity_foundation.sql \
+              database/migrations/20260912160000_identity_action_guards.sql
+
+            echo
+            echo "## Apply migration 1"
+            "${PSQL[@]}" \
+              -f database/migrations/20260912150000_identity_foundation.sql
+
+            echo "MIGRATION_1=PASS"
+
+            echo
+            echo "## Apply migration 2"
+            "${PSQL[@]}" \
+              -f database/migrations/20260912160000_identity_action_guards.sql
+
+            echo "MIGRATION_2=PASS"
+
+            echo
+            echo "## Verify catalog, security and behavior"
+            "${PSQL[@]}" \
+              -f database/verification/identity_foundation_disposable.sql
+
+            echo
+            echo "DISPOSABLE_REAL_DB_RESULT=PASS"
+
+          } 2>&1 | tee "$REPORT"
+
+          RC=${PIPESTATUS[0]}
+
+          {
+            echo
+            echo "EXIT_CODE=$RC"
+
+            if [ "$RC" -eq 0 ]; then
+              echo "CHECKPOINT RESULT: PASS ✅"
+            else
+              echo "CHECKPOINT RESULT: FAIL ❌"
+            fi
+
+            echo "REPORT_FILE=$REPORT"
+          } | tee -a "$REPORT"
+
+          exit "$RC"
+
+      - name: Preserve validation report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: >-
+            orbis-identity-db-validation-${{
+              github.run_id
+            }}-${{
+              github.run_attempt
+            }}
+          path: identity-db-validation-*.txt
+          if-no-files-found: error
+          retention-days: 7
