@@ -1,5 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "supabase/functions/orbis-identity-write/index.ts"
+  ],
   "ignoreDependencies": [
     "jsdom"
   ],
@@ -28,14 +31,6 @@
       ],
       "project": [
         "src/**/*.ts"
-      ]
-    },
-    "supabase/functions/orbis-identity-write": {
-      "entry": [
-        "index.ts"
-      ],
-      "project": [
-        "index.ts"
       ]
     }
   }
