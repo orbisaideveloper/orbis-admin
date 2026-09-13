@@ -15,6 +15,10 @@ const concurrencyMigrationPath = resolve(
   repositoryRoot,
   'database/migrations/20260913101000_identity_write_api_concurrency.sql',
 )
+const variableScopeMigrationPath = resolve(
+  repositoryRoot,
+  'database/migrations/20260913102000_identity_write_api_variable_scope.sql',
+)
 const edgeFunctionPath = resolve(
   repositoryRoot,
   'supabase/functions/orbis-identity-write/index.ts',
@@ -22,14 +26,17 @@ const edgeFunctionPath = resolve(
 
 let migration = ''
 let concurrencyMigration = ''
+let variableScopeMigration = ''
 let edgeFunction = ''
 
 beforeAll(async () => {
-  ;[migration, concurrencyMigration, edgeFunction] = await Promise.all([
-    readFile(migrationPath, 'utf8'),
-    readFile(concurrencyMigrationPath, 'utf8'),
-    readFile(edgeFunctionPath, 'utf8'),
-  ])
+  ;[migration, concurrencyMigration, variableScopeMigration, edgeFunction] =
+    await Promise.all([
+      readFile(migrationPath, 'utf8'),
+      readFile(concurrencyMigrationPath, 'utf8'),
+      readFile(variableScopeMigrationPath, 'utf8'),
+      readFile(edgeFunctionPath, 'utf8'),
+    ])
 })
 
 describe('identity write API contract', () => {
@@ -63,6 +70,16 @@ describe('identity write API contract', () => {
     )
     expect(concurrencyMigration).toContain(
       'orbis_identity.resolve_observation_write_unlocked(',
+    )
+  })
+
+  it('makes PL/pgSQL request-variable precedence explicit', () => {
+    expect(variableScopeMigration).toContain('#variable_conflict use_variable')
+    expect(variableScopeMigration).toContain(
+      'resolve_observation_write_unlocked(p_action_id uuid, p_request jsonb',
+    )
+    expect(variableScopeMigration).toContain(
+      'resolve_observation_write(p_action_id uuid, p_request jsonb',
     )
   })
 
