@@ -1,6 +1,15 @@
-export const healthResponse = {
+export type HealthResponse = {
+  status: 'ok'
+  service: 'orbis-admin-api'
+  revision: string | null
+}
+
+export const buildHealthResponse = (
+  revision: string | undefined,
+): HealthResponse => ({
   status: 'ok',
   service: 'orbis-admin-api',
-} as const
+  revision: revision ?? null,
+})
 
-export type HealthResponse = typeof healthResponse
+export const healthResponse = buildHealthResponse(undefined)

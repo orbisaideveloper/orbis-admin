@@ -14,7 +14,10 @@ Describe the targeted checks, tests, preview validation, manual verification, an
 - [ ] Current branch/HEAD and diff reviewed.
 - [ ] Targeted tests/checks for the changed area passed.
 - [ ] Required GitHub checks passed, if configured.
-- [ ] PR preview reviewed, if applicable/configured.
+- [ ] Exact PR head was promoted to `staging` before merge.
+- [ ] Render staging runtime revision equals the exact PR head SHA.
+- [ ] Staging health/API/web smoke checks passed.
+- [ ] `Staging Verification Gate` passed on the exact PR head.
 - [ ] Long-running Termux verification/audit produced a timestamped Downloads report, if applicable.
 
 ## Quality

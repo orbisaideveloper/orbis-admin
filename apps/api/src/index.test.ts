@@ -30,6 +30,40 @@ describe('ORBIS Admin API', () => {
     await app.close()
   })
 
+  it('reports the exact Render runtime revision when available', async () => {
+    const previousRevision =
+      process.env.RENDER_GIT_COMMIT
+
+    process.env.RENDER_GIT_COMMIT =
+      '0123456789abcdef0123456789abcdef01234567'
+
+    const app = buildApp()
+
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/health',
+      })
+
+      expect(response.statusCode).toBe(200)
+      expect(response.json()).toEqual({
+        status: 'ok',
+        service: 'orbis-admin-api',
+        revision:
+          '0123456789abcdef0123456789abcdef01234567',
+      })
+    } finally {
+      if (previousRevision === undefined) {
+        delete process.env.RENDER_GIT_COMMIT
+      } else {
+        process.env.RENDER_GIT_COMMIT =
+          previousRevision
+      }
+
+      await app.close()
+    }
+  })
+
   it('returns the canonical v1 project registry read model', async () => {
     const app = buildApp({
       projectRegistryReader: () =>

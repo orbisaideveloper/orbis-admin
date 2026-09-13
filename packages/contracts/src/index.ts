@@ -1,4 +1,5 @@
 export {
+  buildHealthResponse,
   healthResponse,
   type HealthResponse,
 } from './health.js'

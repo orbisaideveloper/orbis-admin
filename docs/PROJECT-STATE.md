@@ -2,7 +2,7 @@
 
 This file is the canonical current-state handoff for future chats, coding agents, and contributors. It is intentionally concise enough to read at the start of every ORBIS Admin work session.
 
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-13
 
 ## Session-start rule
 
@@ -186,59 +186,22 @@ Implementation proceeds in deliberate phases:
 - **Controlled actions:** only after read-only/audit boundaries are proven; low-risk mutations first, production publish/deploy later, destructive/security/recovery controls last, with emergency write-disable controls in place.
 - **Enterprise hardening:** tamper-evident audit when technically justified, formal metrics/traces, DR drills/RPO/RTO, SBOM/provena## Current exact next action
 
-PR #10, **Unique ORBIS ID Foundation**, is a draft and must remain unmerged
-until its database checkpoint is complete.
+PR #10, **Unique ORBIS ID Foundation**, is merged.
 
-The feature branch now provides:
+Verified merge/current `main` baseline:
 
-- UUIDv7 canonical identities and subject-matched opaque display IDs,
-- verified-only automatic resolution with observed/name-only data failing safe
-  to provisional/review,
-- idempotent source action records,
-- append-only audit-event and merge evidence structures,
-- non-destructive identifier/reference history,
-- private schema, revoked public grants, forced RLS, and static migration tests.
+`a5cbf92bb665602e4d402b1dc9a244ccd6e8a13b`
 
-The draft PR quality run `34707661049` passed lint, type-check, tests,
-100% V8 coverage, Knip, JSCPD, dependency audit, production build, SonarQube
-Cloud, and the strict zero-issue Sonar gate.
+The dedicated ORBIS Admin identity migrations are applied and verified. The permanent `staging` branch was re-baselined to the same SHA, the Render staging service was deployed on that SHA, and public `/health`, `/api/v1/projects`, and web-root smoke checks passed on 2026-09-13.
 
-The dedicated Supabase target is **only**:
+The current task is delivery-governance hardening:
 
-- organization: `ORBIS Admin`,
-- project: `orbis admin`,
-- project ref: `aqcwhqdzniruvoqwfsij`,
-- region: `ap-northeast-2` (Seoul).
+1. establish the stable `Staging Verification Gate`,
+2. require exact `PR head == staging branch == Render runtime revision`,
+3. verify health/API/web smoke behavior on the exact candidate,
+4. observe the new check successfully on this governance PR,
+5. add `Staging Verification Gate` to the active `Protect main` ruleset,
+6. merge only after both quality and staging gates are green,
+7. re-align `staging`, Render staging, local Termux `main`, and GitHub `main` to the merge commit.
 
-It is healthy and empty; no migration or customer data has been applied.
-Foundation main/staging are never migration targets for this work.
-
-Next, before any live migration:
-
-1. set the new project Data API to OFF and automatic table exposure to OFF,
-2. validate the two source migrations in a disposable PostgreSQL/Supabase
-   environment and preserve the timestamped report,
-3. provide an explicit user approval checkpoint naming the target, SQL effects,
-   verification evidence, and recovery plan,
-4. only then apply the migrations to the dedicated ORBIS Admin project and
-   verify tables, constraints, grants, RLS, advisors, and migration history.
-
-Do not add an identity write endpoint, authentication, Foundation integration,
-customer import, production deployment, or auto-merge before those boundaries
-are separately approved and verified.
-
-## Handoff/update discipline
-
-Update this file in the same PR whenever any of the following materially changes:
-
-- roadmap step status,
-- required GitHub check names or ruleset behavior,
-- first application architecture,
-- owner-control/central-identity vision,
-- Version 1 screen scope,
-- Sonar project/gate status,
-- Render service/preview status,
-- database/auth implementation status,
-- the exact next action.
-
-A future chat should never have to reconstruct the project phase from scattered messages when the durable state can be recorded here.
+The next product phase after governance hardening is the server-side ORBIS Identity write/API integration. Authentication/login remains a separate later phase.

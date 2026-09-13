@@ -58,6 +58,7 @@ jobs:
             .github/copilot-instructions.md
             .github/pull_request_template.md
             .github/workflows/pr-checks.yml
+            .github/workflows/staging-verification.yml
             docs/SONAR-RUNBOOK.md
             scripts/sonar-diagnostic.sh
             scripts/validate-workflows.mjs

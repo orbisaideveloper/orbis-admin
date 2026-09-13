@@ -14,12 +14,16 @@ The project-state handoff is not a substitute for live verification. Check the c
 2. Create a purpose-specific branch.
 3. Make the smallest coherent change that solves the task.
 4. Run targeted verification for the changed area.
-5. Push the branch and open a pull request.
-6. Review the PR preview when applicable, required checks, diff, and risk notes.
-7. Resolve review conversations.
-8. Merge manually only when required checks are green and the change is understood.
-9. Production deployment follows the approved merge path and remains explicit/manual unless a later accepted decision changes it.
-10. Update `docs/PROJECT-STATE.md` in the same PR when the roadmap phase, verified setup, or exact next action materially changes.
+5. Push the feature branch and open a pull request targeting `main`.
+6. Let the normal PR quality checks complete.
+7. Fast-forward the permanent `staging` branch to the exact PR head SHA; do not merge `main`.
+8. Manually deploy `orbis-admin-staging` from that exact staging SHA.
+9. Verify the Render runtime revision equals the PR head and run health/API/web smoke checks.
+10. Require the stable `Staging Verification Gate` check to pass on the exact PR head.
+11. Resolve review conversations and obtain explicit/manual merge acceptance.
+12. Merge to `main` only after both quality and staging gates are green.
+13. Production deployment remains explicit/manual unless a later accepted decision changes it.
+14. Update `docs/PROJECT-STATE.md` in the same PR when the roadmap phase, verified setup, or exact next action materially changes.
 
 Do not use `main` as the normal development branch.
 
