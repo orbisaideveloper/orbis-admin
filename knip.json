@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
+  "ignore": [
     "supabase/functions/orbis-identity-write/index.ts"
   ],
   "ignoreDependencies": [
