@@ -36,7 +36,10 @@ export {
   type IdentityObservation,
   type IdentityResolution,
   type IdentityResolutionOutcome,
+  type IdentityResolutionReason,
   type IdentitySubjectKind,
+  type IdentityWriteRequest,
+  type IdentityWriteResponse,
   type OrbisIdentity,
   type ProductIdentityReference,
 } from './identity.js'
