@@ -109,7 +109,9 @@ const normalizeRequest = (body: RequestBody) => {
   const localEntityType = text(body.source?.localEntityType)
   const localEntityId = text(body.source?.localEntityId)
   const roles = Array.isArray(body.source?.roles)
-    ? [...new Set(body.source.roles.map(text).filter(Boolean))].sort()
+    ? [...new Set(body.source.roles.map(text).filter(Boolean))].sort(
+        (left, right) => left.localeCompare(right, 'en-US'),
+      )
     : []
 
   if (
@@ -163,6 +165,7 @@ const normalizeRequest = (body: RequestBody) => {
   identifiers.sort((left, right) =>
     `${left.kind}:${left.normalized_value}`.localeCompare(
       `${right.kind}:${right.normalized_value}`,
+      'en-US',
     ),
   )
 
