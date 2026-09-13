@@ -1,0 +1,134 @@
+name: ORBIS Admin Staging Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbis-admin-staging-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  staging-verification:
+    name: Staging Verification Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Resolve Candidate SHA
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            candidate="${{ github.event.pull_request.head.sha }}"
+          else
+            candidate="${{ github.sha }}"
+          fi
+
+          test -n "$candidate"
+          echo "Candidate SHA: $candidate"
+          echo "sha=$candidate" >> "$GITHUB_OUTPUT"
+
+      - name: Require Exact Staging Branch Candidate
+        shell: bash
+        env:
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          staging_sha="$(
+            git ls-remote origin refs/heads/staging |
+            awk '{print $1}'
+          )"
+
+          test -n "$staging_sha"
+
+          echo "Candidate SHA: $CANDIDATE_SHA"
+          echo "Staging SHA:   $staging_sha"
+
+          if [[ "$staging_sha" != "$CANDIDATE_SHA" ]]; then
+            echo "ERROR: staging must equal the exact PR head before merge."
+            exit 1
+          fi
+
+          echo "Staging branch alignment: PASS"
+
+      - name: Verify Exact Render Deployment And Public Smoke
+        shell: bash
+        env:
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.sha }}
+          STAGING_URL: https://orbis-admin-staging.onrender.com
+        run: |
+          set -euo pipefail
+
+          health="$(
+            curl -fsS \
+              --retry 3 \
+              --retry-all-errors \
+              --retry-delay 2 \
+              --max-time 30 \
+              "$STAGING_URL/health"
+          )"
+
+          status="$(
+            printf '%s' "$health" |
+            python3 -c 'import json,sys; print(json.load(sys.stdin).get("status") or "")'
+          )"
+
+          service="$(
+            printf '%s' "$health" |
+            python3 -c 'import json,sys; print(json.load(sys.stdin).get("service") or "")'
+          )"
+
+          deployed_sha="$(
+            printf '%s' "$health" |
+            python3 -c 'import json,sys; print(json.load(sys.stdin).get("revision") or "")'
+          )"
+
+          echo "Candidate SHA: $CANDIDATE_SHA"
+          echo "Deployed SHA:  $deployed_sha"
+
+          [[ "$status" == "ok" ]]
+          [[ "$service" == "orbis-admin-api" ]]
+          [[ "$deployed_sha" == "$CANDIDATE_SHA" ]]
+
+          projects="$(
+            curl -fsS \
+              --retry 3 \
+              --retry-all-errors \
+              --retry-delay 2 \
+              --max-time 30 \
+              "$STAGING_URL/api/v1/projects"
+          )"
+
+          printf '%s' "$projects" | python3 -c 'import json,sys; body=json.load(sys.stdin); assert body.get("schemaVersion") == "v1"; assert isinstance(body.get("projects"), list)'
+
+          root_code="$(
+            curl -sS \
+              --retry 3 \
+              --retry-all-errors \
+              --retry-delay 2 \
+              --max-time 30 \
+              -o /dev/null \
+              -w '%{http_code}' \
+              "$STAGING_URL/"
+          )"
+
+          [[ "$root_code" == "200" ]]
+
+          echo "Exact Render deployment: PASS"
+          echo "Health/API/Web smoke: PASS"
+          echo "STAGING VERIFICATION GATE: PASS"

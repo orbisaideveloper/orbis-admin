@@ -41,7 +41,11 @@ It is not a monolithic application database for all ORBIS products.
 - Every normal change reaches `main` through a pull request.
 - The repository ruleset must require a pull request, require review-conversation resolution, block force-pushes, and block deletion of `main`.
 - Do not use auto-merge as the default delivery mechanism. Merge is an explicit/manual acceptance after review and required checks are satisfactory.
-- Use PR preview and targeted verification appropriate to the change.
+- Every pull request targeting `main` must be verified on the permanent staging environment before merge.
+- The exact PR head SHA must equal the `staging` branch SHA and the exact Render staging runtime revision.
+- Staging health/API/web smoke verification must pass through the stable `Staging Verification Gate` check before merge.
+- Updating staging after a merge is never a substitute for pre-merge staging verification.
+- `staging` is a verification deployment target, not a second development or integration branch.
 - Add required CI/quality/preview status checks to the ruleset only after those checks exist, are stable, and have known GitHub check names.
 - Avoid unrelated refactors in a focused change.
 

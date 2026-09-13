@@ -24,6 +24,22 @@ As soon as application code exists, the full PR gate becomes mandatory. The appl
 - SonarQube Cloud/SonarCloud analysis,
 - Sonar quality gate completion before the GitHub job succeeds.
 
+## Mandatory staging verification gate
+
+Every pull request targeting `main` must pass pre-merge staging verification.
+
+The accepted candidate is always the exact PR head SHA. Before merge:
+
+- `staging` must point to that exact SHA,
+- the permanent `orbis-admin-staging` Render service must be manually deployed from that SHA,
+- `/health` must report the same runtime revision,
+- `/health`, `/api/v1/projects`, and the web root must pass public smoke checks,
+- the stable GitHub check context `Staging Verification Gate` must succeed.
+
+A post-merge staging sync does not satisfy this gate. Staging exists to validate the candidate before `main` changes.
+
+The gate requires no Render API credential in GitHub Actions. The deployed non-secret commit revision is surfaced by `/health` for exact-SHA verification.
+
 ## SonarQube Cloud / SonarCloud policy
 
 ORBIS Admin now has an external SonarQube Cloud project and repository secret configured. The verified project identity is:
@@ -79,7 +95,7 @@ Dependency audit failures at high or critical severity block the PR. Additional 
 
 The stable GitHub Actions context `Build, Test & Safety Audit` has been observed successfully on PR #2 and is now required by the active `Protect main` ruleset with strict branch-up-to-date enforcement.
 
-Sonar and Render preview checks should be added separately only after their exact, stable check names are observed on application-code pull requests.
+The `Staging Verification Gate` check must be observed successfully on this governance PR before it is added to the active `Protect main` ruleset. After that ruleset update, GitHub itself must block merges whenever exact staging verification has not passed.
 
 ## Render preview
 

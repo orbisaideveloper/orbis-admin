@@ -2,7 +2,7 @@ import fastifyStatic from '@fastify/static'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { resolve } from 'node:path'
 import {
-  healthResponse,
+  buildHealthResponse,
   type HealthResponse,
 } from '@orbis-admin/contracts'
 import {
@@ -70,7 +70,10 @@ export function buildApp(
 
   app.get<{ Reply: HealthResponse }>(
     '/health',
-    async () => healthResponse,
+    async () =>
+      buildHealthResponse(
+        process.env.RENDER_GIT_COMMIT,
+      ),
   )
 
   registerProjectRoutes(
