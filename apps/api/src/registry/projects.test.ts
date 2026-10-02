@@ -64,7 +64,13 @@ describe('canonical project registry', () => {
     })
     expect(maya.environment.kind).toBe('development')
     expect(maya.users).toEqual({ mode: 'not-connected', count: null })
-    expect(maya.providers).not.toHaveProperty('render')
+    expect(maya.providers.render).toEqual({
+      serviceId: 'srv-davrsgbncjis73fhhr70',
+      serviceName: 'orbis-maya-development',
+      branch: 'main',
+      region: 'global',
+    })
+    expect(maya.environment.label).toBe('Development PWA')
     expect(maya.release).toEqual({ current: null, published: null })
     expect(maya.signals).toEqual(admin.signals)
   })
@@ -133,6 +139,7 @@ describe('canonical project registry', () => {
 
     expect(renderRegistrations).toEqual([
       'srv-dai144uq1p3s73ajc1ag',
+      'srv-davrsgbncjis73fhhr70',
     ])
 
     expect(response.projects[0].release).toEqual(
@@ -150,6 +157,8 @@ describe('canonical project registry', () => {
     expect(response.projects[1].signals.deployment).toBe(
       'unknown',
     )
+
+    expect(response.projects[3].signals.deployment).toBe('healthy')
 
     expect(response.projects[2]).toEqual(
       registeredProjects[2],
