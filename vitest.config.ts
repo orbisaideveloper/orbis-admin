@@ -10,17 +10,26 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'jsdom',
-    environmentOptions: {
-      jsdom: {
-        url: 'http://localhost/',
+    projects: [
+      {
+        test: {
+          name: 'web',
+          environment: 'jsdom',
+          environmentOptions: { jsdom: { url: 'http://localhost/' } },
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['./apps/web/src/**/*.test.{ts,tsx}'],
+        },
       },
-    },
-    setupFiles: ['./vitest.setup.ts'],
-    include: [
-      './apps/web/src/**/*.test.{ts,tsx}',
-      './apps/api/src/**/*.test.ts',
-      './packages/contracts/src/**/*.test.ts',
+      {
+        test: {
+          name: 'server',
+          environment: 'node',
+          include: [
+            './apps/api/src/**/*.test.ts',
+            './packages/contracts/src/**/*.test.ts',
+          ],
+        },
+      },
     ],
     coverage: {
       provider: 'v8',

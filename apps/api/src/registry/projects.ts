@@ -110,6 +110,24 @@ export const registeredProjects = [
     providers: {},
     signals: unknownSignals,
   },
+  {
+    id: 'orbis-maya',
+    name: 'ORBIS Maya',
+    kind: 'Dream & Astro PWA',
+    lifecycle: 'external',
+    repository: 'orbisaideveloper/orbis-maya',
+    environment: { kind: 'development', label: 'Local PWA' },
+    release: { current: null, published: null },
+    users: { mode: 'not-connected', count: null },
+    modules: null,
+    providers: {
+      github: {
+        repositoryFullName: 'orbisaideveloper/orbis-maya',
+        defaultBranch: 'main',
+      },
+    },
+    signals: unknownSignals,
+  },
 ] as const satisfies readonly ProjectRegistryProject[]
 
 type GitHubProjectReader = (

@@ -202,3 +202,22 @@ h1, h2, p { margin-top: 0; }
   .project-hero { padding: 22px; }
   .detail-panel { padding: 22px; }
 }
+.maya-workspace iframe {
+  display: block;
+  width: 100%;
+  min-height: 70dvh;
+  margin-top: 1rem;
+  border: 1px solid #536781;
+  border-radius: 1rem;
+  background: #102738;
+}
+
+.maya-workspace dd {
+  overflow-wrap: anywhere;
+  margin: .4rem 0 1rem;
+}
+
+.maya-workspace button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
