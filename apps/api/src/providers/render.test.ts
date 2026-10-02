@@ -117,6 +117,25 @@ describe('Render read-only provider', () => {
     expect(result.deployId).toBe(liveDeploy.id)
   })
 
+  it('recognizes a static site on the global CDN without a web-service region', async () => {
+    let requests = 0
+    const staticRegistration = { ...registration, region: 'global' }
+    const reader = createRenderReader({
+      token: 'token',
+      fetchImpl: async () => {
+        requests += 1
+        return requests === 1
+          ? jsonResponse({ ...healthyService, type: 'static_site', serviceDetails: {} })
+          : jsonResponse([liveDeploy])
+      },
+    })
+    const result = await reader(staticRegistration)
+    expect(result.deployment).toBe('healthy')
+    expect(result.region).toBe('global')
+    expect(result.commitId).toBe(liveDeploy.commit.id)
+    expect(requests).toBe(2)
+  })
+
   it('reports attention for a non-live latest deploy', async () => {
     let requestNumber = 0
 

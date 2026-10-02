@@ -116,7 +116,7 @@ export const registeredProjects = [
     kind: 'Dream & Astro PWA',
     lifecycle: 'external',
     repository: 'orbisaideveloper/orbis-maya',
-    environment: { kind: 'development', label: 'Local PWA' },
+    environment: { kind: 'development', label: 'Development PWA' },
     release: { current: null, published: null },
     users: { mode: 'not-connected', count: null },
     modules: null,
@@ -124,6 +124,12 @@ export const registeredProjects = [
       github: {
         repositoryFullName: 'orbisaideveloper/orbis-maya',
         defaultBranch: 'main',
+      },
+      render: {
+        serviceId: 'srv-davrsgbncjis73fhhr70',
+        serviceName: 'orbis-maya-development',
+        branch: 'main',
+        region: 'global',
       },
     },
     signals: unknownSignals,

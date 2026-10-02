@@ -32,16 +32,26 @@ product's frame policy must allow the Admin origin before inline preview can
 work. Cookies/authentication remain isolated by origin; Admin does not proxy
 product credentials. Voice/browser features should use the full-screen view.
 
-A phone's localhost is not accessible from cloud Admin. This change does not
-create a public deployment or a new preview service. URLs must be configured
-only after their separate deployment and environment identity are verified.
+A phone's localhost is not accessible from cloud Admin. The owner-approved
+permanent Development PWA is https://orbis-maya-development.onrender.com.
+Render static site `srv-davrsgbncjis73fhhr70` builds Maya main with
+`npm ci --ignore-scripts && npm run build:pwa`, publishes `dist`, and uses
+Node 24.13.0. Automatic deployment and PR previews are disabled. This is a
+development environment, not an approved public release.
+
+The existing Admin staging service has `ORBIS_MAYA_DEVELOPMENT_URL` configured.
+The Development view was verified with the actual Maya dashboard embedded.
+The registry records this static site's global CDN deployment separately from
+GitHub source metadata. A source commit does not prove that commit is deployed.
+Provider credentials remain server-side; absent credentials produce unknown
+status. Public view remains disabled until a separately approved release URL
+is configured and verified.
 
 ## Remaining control boundary
 
 This is read-only workspace integration, not completion of the control plane.
-Maya currently has no registered public/review Render service. Embedded app
-views cannot be claimed operational until the actual URLs are configured and
-verified. Modules, published release and gateway health remain unknown.
+The Development view is operational. Public release, modules and live AI
+gateway health remain unverified. Deploy/publish/settings controls are disabled.
 
 Before enabling Admin deploy/publish/settings writes, implement verified Admin
 authentication, project/environment-scoped capabilities, confirmation,

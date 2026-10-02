@@ -50,6 +50,10 @@ const isRecord = (
 const serviceRegion = (
   payload: Record<string, unknown>,
 ): string | null => {
+  if (payload.type === 'static_site') {
+    return 'global'
+  }
+
   if (typeof payload.region === 'string') {
     return payload.region
   }

@@ -297,6 +297,9 @@ describe('ORBIS Admin API', () => {
         method: 'GET',
         url: '/api/v1/projects',
       })
+      const requestsAfterFirst = renderRequests.length
+      expect(requestsAfterFirst).toBe(4)
+
       const second = await app.inject({
         method: 'GET',
         url: '/api/v1/projects',
@@ -313,7 +316,7 @@ describe('ORBIS Admin API', () => {
         second.json().projects[0].signals.deployment,
       ).toBe('healthy')
 
-      expect(renderRequests).toHaveLength(2)
+      expect(renderRequests).toHaveLength(requestsAfterFirst)
     } finally {
       globalThis.fetch = originalFetch
 
