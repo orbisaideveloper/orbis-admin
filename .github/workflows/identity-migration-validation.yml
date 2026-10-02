@@ -40,22 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    services:
-      postgres:
-        image: postgres:17.6
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: orbis_identity_disposable
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd
-          "pg_isready -U postgres -d orbis_identity_disposable"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-
     steps:
       - name: Checkout exact source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -72,10 +56,50 @@ jobs:
 
           psql --version
 
+      - name: Start isolated disposable PostgreSQL
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          DB_CREDENTIAL="$(openssl rand -hex 32)"
+          echo "::add-mask::$DB_CREDENTIAL"
+          printf 'PGPASSWORD=%s\n' "$DB_CREDENTIAL" >> "$GITHUB_ENV"
+
+          DB_ENV_FILE="$(mktemp "$RUNNER_TEMP/identity-db-env.XXXXXX")"
+          trap 'rm -f "$DB_ENV_FILE"' EXIT
+          printf 'POSTGRES_PASSWORD=%s\n' "$DB_CREDENTIAL" > "$DB_ENV_FILE"
+
+          docker run --detach \
+            --name "orbis-identity-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --env-file "$DB_ENV_FILE" \
+            --env POSTGRES_USER=postgres \
+            --env POSTGRES_DB=orbis_identity_disposable \
+            --publish 127.0.0.1:5432:5432 \
+            postgres:17.6
+
+          export PGPASSWORD="$DB_CREDENTIAL"
+          export PGCONNECT_TIMEOUT=2
+          DB_READY=false
+
+          for attempt in {1..30}; do
+            if psql -X -h 127.0.0.1 -p 5432 -U postgres \
+              -d orbis_identity_disposable -Atc 'SELECT 1' >/dev/null 2>&1; then
+              DB_READY=true
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$DB_READY" != true ]; then
+            echo "ERROR: disposable PostgreSQL did not become ready"
+            exit 32
+          fi
+
+          echo "Disposable PostgreSQL readiness: PASS"
+
       - name: Apply migrations and verify real database behavior
         shell: bash
-        env:
-          PGPASSWORD: postgres
         run: |
           set -o pipefail
 
@@ -163,6 +187,16 @@ jobs:
           } | tee -a "$REPORT"
 
           exit "$RC"
+
+      - name: Remove disposable PostgreSQL
+        if: always()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          DB_CONTAINER="orbis-identity-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+            docker rm --force "$DB_CONTAINER"
+          fi
 
       - name: Preserve validation report
         if: always()
