@@ -40,7 +40,7 @@ describe('Maya workspace views and automatic refresh', () => {
   it('uses the default loader and displays a failed initial load', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
     render(<MayaWorkspace />)
-    await screen.findByText(/আপডেট পাওয়া যায়নি/)
+    expect(await screen.findByText(/আপডেট পাওয়া যায়নি/)).toBeTruthy()
   })
   it('refreshes after completion, preserves stale data on failure and recovers', async () => {
     vi.useFakeTimers()
@@ -64,5 +64,6 @@ describe('Maya workspace views and automatic refresh', () => {
     const view = render(<MayaWorkspace load={() => promise} />)
     view.unmount()
     await act(async () => { if (reject) fail(new Error('offline')); else settle(data) })
+    expect(screen.queryByRole('region', { name: 'Maya app views' })).toBeNull()
   })
 })

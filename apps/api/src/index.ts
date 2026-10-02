@@ -71,7 +71,7 @@ export function buildApp(
 
   app.get<{ Reply: HealthResponse }>(
     '/health',
-    async () =>
+    () =>
       buildHealthResponse(
         process.env.RENDER_GIT_COMMIT,
       ),

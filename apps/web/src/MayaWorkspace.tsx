@@ -33,11 +33,13 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
     return () => { active = false; clearTimeout(timer) }
   }, [load])
   const viewUrl = selected === null ? null : data?.[selected]
+  let statusMessage = 'তথ্য সংগ্রহ হচ্ছে…'
+  if (data) statusMessage = 'প্রতি মিনিটে source তথ্য আপডেট হয়।'
+  if (failed) statusMessage = 'আপডেট পাওয়া যায়নি। প্রদর্শিত তথ্য পুরোনো হতে পারে।'
   return (
     <section className="detail-panel maya-workspace" aria-label="Maya app views">
       <h2>মায়া — অ্যাপ ও সংস্করণ</h2>
-      <p role="status">{failed ? 'আপডেট পাওয়া যায়নি। প্রদর্শিত তথ্য পুরোনো হতে পারে।' :
-        data ? 'প্রতি মিনিটে source তথ্য আপডেট হয়।' : 'তথ্য সংগ্রহ হচ্ছে…'}</p>
+      <output>{statusMessage}</output>
       {data ? <dl>
         <dt>Source version</dt><dd>{data.version ?? 'সংযুক্ত নয়'}</dd>
         <dt>Main revision</dt><dd>{data.revision ?? 'সংযুক্ত নয়'}</dd>
