@@ -7,7 +7,10 @@ const mockSource = () => vi.fn<typeof fetch>()
   .mockResolvedValueOnce(response({ commit: { sha: revision } }))
   .mockResolvedValueOnce(response({ name: 'orbis-maya', version: '0.1.0', secret: 'not-output' }))
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 describe('Maya read-only source adapter', () => {
   it('shares an in-flight request and expires its cache after one minute', async () => {
@@ -60,19 +63,27 @@ describe('Maya read-only source adapter', () => {
     expect((await createMayaWorkspaceReader({ fetchImpl })()).version).toBeNull()
   })
   it.each(['http', 'json', 'size', 'timeout'])('contains %s failures', async (kind) => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const fetchImpl = vi.fn<typeof fetch>()
     if (kind === 'http') fetchImpl.mockResolvedValue(response({}, 503))
     if (kind === 'json') fetchImpl.mockResolvedValue(new Response('invalid-json'))
     if (kind === 'size') fetchImpl.mockResolvedValue(new Response('x'.repeat(65_537)))
     if (kind === 'timeout') fetchImpl.mockRejectedValue(new Error('timeout'))
     expect((await createMayaWorkspaceReader({ fetchImpl })()).revision).toBeNull()
+    expect(warning).toHaveBeenCalledWith('Maya source metadata unavailable', {
+      stage: 'branch', httpStatus: kind === 'timeout' ? null : kind === 'http' ? 503 : 200,
+    })
   })
   it('retains the known revision when its package fetch fails', async () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const fetchImpl = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(response({ commit: { sha: revision } }))
       .mockRejectedValueOnce(new Error('offline'))
     const value = await createMayaWorkspaceReader({ fetchImpl })()
     expect(value.revision).toBe(revision)
     expect(value.version).toBeNull()
+    expect(warning).toHaveBeenCalledWith('Maya source metadata unavailable', {
+      stage: 'package', httpStatus: null,
+    })
   })
 })
