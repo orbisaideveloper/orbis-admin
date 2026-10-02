@@ -1,4 +1,5 @@
 import fastifyStatic from '@fastify/static'
+import { registerMayaWorkspaceRoute } from './routes/maya.js'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { resolve } from 'node:path'
 import {
@@ -80,6 +81,7 @@ export function buildApp(
     app,
     options.projectRegistryReader,
   )
+  registerMayaWorkspaceRoute(app)
 
   if (options.webRoot) {
     registerWebRuntime(app, options.webRoot)

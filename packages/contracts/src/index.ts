@@ -4,6 +4,8 @@ export {
   type HealthResponse,
 } from './health.js'
 
+export { safeProductUrl, parseMayaWorkspace, type MayaWorkspace } from './maya-workspace.js'
+
 export {
   environmentKindValues,
   projectLifecycleValues,

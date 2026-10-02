@@ -32,6 +32,7 @@ import {
   type StatusTone,
 } from './model'
 import './styles.css'
+import { MayaWorkspace } from './MayaWorkspace'
 
 const dateFormatter = new Intl.DateTimeFormat('en-IN', {
   day: '2-digit',
@@ -347,6 +348,8 @@ const ProjectPage = ({
         <SummaryTile label="Modules" value={modulesLabel(project.modules)} />
         <SummaryTile label="Users" value={usersLabel(project)} />
       </section>
+
+      {project.id === 'orbis-maya' ? <MayaWorkspace /> : null}
 
       <section className="command-grid command-grid--project">
         {projectAreas.map((areaId) => {
