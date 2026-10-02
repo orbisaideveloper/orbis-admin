@@ -41,6 +41,24 @@ afterEach(() => {
 })
 
 describe('ORBIS Admin V1 shell backed by the registry API', () => {
+  it('opens Maya project admin and its scoped Users area from Projects', async () => {
+    const user = userEvent.setup()
+    render(<TestRouter initialEntries={['/projects']} registryLoader={readyLoader} />)
+    await screen.findByRole('heading', { name: 'Projects' })
+    await user.click(screen.getByRole('link', { name: /Dream & Astro PWA ORBIS Maya/ }))
+    expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
+    expect(screen.getAllByText('Local PWA').length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: 'Open in GitHub ↗' }).getAttribute('href'))
+      .toBe('https://github.com/orbisaideveloper/orbis-maya')
+    const users = screen.getAllByRole('link').find((link) =>
+      link.getAttribute('href') === '/detail/users/orbis-maya')
+    expect(users).toBeDefined()
+    await user.click(users!)
+    expect(screen.getByText(/repository=orbisaideveloper\/orbis-maya/)).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Go back one screen' }))
+    expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
+  })
+
   it('mounts the production BrowserRouter and reads the same-origin registry', async () => {
     window.history.replaceState({}, '', '/')
     const view = render(<App />)

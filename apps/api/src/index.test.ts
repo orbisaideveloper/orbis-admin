@@ -96,7 +96,7 @@ describe('ORBIS Admin API', () => {
 
     expect(response.statusCode).toBe(200)
     expect(body.schemaVersion).toBe('v1')
-    expect(body.projects).toHaveLength(3)
+    expect(body.projects).toHaveLength(4)
     expect(body.projects[0]).toMatchObject({
       id: 'orbis-admin',
       repository: 'orbisaideveloper/orbis-admin',
@@ -107,6 +107,12 @@ describe('ORBIS Admin API', () => {
         deployment: 'healthy',
         health: 'unknown',
       },
+    })
+    expect(body.projects[3]).toMatchObject({
+      id: 'orbis-maya',
+      repository: 'orbisaideveloper/orbis-maya',
+      environment: { kind: 'development' },
+      users: { mode: 'not-connected', count: null },
     })
     expect(Number.isNaN(Date.parse(body.generatedAt))).toBe(false)
 
@@ -173,7 +179,7 @@ describe('ORBIS Admin API', () => {
       const body = response.json()
 
       expect(response.statusCode).toBe(200)
-      expect(requests).toHaveLength(4)
+      expect(requests).toHaveLength(6)
       expect(body.projects[0].signals.ci).toBe('healthy')
       expect(body.projects[1].signals.ci).toBe('healthy')
       expect(body.projects[2].signals.ci).toBe('unknown')

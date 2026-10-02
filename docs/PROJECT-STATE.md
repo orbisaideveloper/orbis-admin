@@ -205,3 +205,29 @@ The current task is delivery-governance hardening:
 7. re-align `staging`, Render staging, local Termux `main`, and GitHub `main` to the merge commit.
 
 The next product phase after governance hardening is the server-side ORBIS Identity write/API integration. Authentication/login remains a separate later phase.
+
+
+## Maya registry onboarding — 2026-10-02
+
+The Maya registry change registers `orbisaideveloper/orbis-maya` and reuses
+Projects -> Maya project admin -> scoped area navigation. Maya is a development
+PWA with no registered Render deployment. Release and user counts remain unknown;
+membership is not connected. No personal Dream/Astro/Chat records enter Admin.
+
+Maya main checkpoint `25b14e1509c4fd43011a667d02e3ed5dfc06255e` was pushed and
+remote SHA verified in Termux. Its local certification is separate from Admin's.
+The registry entry does not enable public Auth, membership or AI access. Next:
+implement an authenticated, project-scoped membership/capability contract before
+Foundation can authorize Maya requests. Keep identity-write service credentials
+server-side and separate from public client tokens and capability decisions.
+
+This change must follow Admin feature-branch delivery and required quality/staging
+gates. Local/CI results must be reviewed; deployment and merge are separate actions.
+
+On 2026-10-02, read-only Supabase inspection confirmed the dedicated Admin
+project `aqcwhqdzniruvoqwfsij` is ACTIVE_HEALTHY, its five identity migrations
+are recorded, and seven private `orbis_identity` tables have RLS enabled.
+The deployed `orbis-identity-write` function is active. This is identity
+persistence evidence, not proof of a public login or Maya capability endpoint.
+Existing migrations must not be reapplied. Maya gateway files in Foundation
+remain local/uncommitted at the latest owner audit; backend release is pending.

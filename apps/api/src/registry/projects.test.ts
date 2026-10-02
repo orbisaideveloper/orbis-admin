@@ -32,7 +32,7 @@ const unknownRenderReader = async (registration: {
 
 describe('canonical project registry', () => {
   it('keeps registration metadata separate from live provider signals', () => {
-    expect(registeredProjects).toHaveLength(3)
+    expect(registeredProjects).toHaveLength(4)
 
     const admin = registeredProjects[0]
     expect(admin.id).toBe('orbis-admin')
@@ -55,6 +55,18 @@ describe('canonical project registry', () => {
     expect(registeredProjects[1].lifecycle).toBe('external')
     expect(registeredProjects[2].lifecycle).toBe('planned')
     expect(registeredProjects[2].repository).toBeNull()
+
+    const maya = registeredProjects[3]
+    expect(maya.id).toBe('orbis-maya')
+    expect(maya.providers.github).toEqual({
+      repositoryFullName: 'orbisaideveloper/orbis-maya',
+      defaultBranch: 'main',
+    })
+    expect(maya.environment.kind).toBe('development')
+    expect(maya.users).toEqual({ mode: 'not-connected', count: null })
+    expect(maya.providers).not.toHaveProperty('render')
+    expect(maya.release).toEqual({ current: null, published: null })
+    expect(maya.signals).toEqual(admin.signals)
   })
 
   it('returns a deterministic v1 read model when a clock and reader are supplied', async () => {
@@ -116,6 +128,7 @@ describe('canonical project registry', () => {
     expect(githubRegistrations).toEqual([
       'orbisaideveloper/orbis-admin',
       'orbisaideveloper/orbis-foundation',
+      'orbisaideveloper/orbis-maya',
     ])
 
     expect(renderRegistrations).toEqual([
@@ -198,7 +211,7 @@ describe('canonical project registry', () => {
         new Date('2026-09-12T05:30:00.000Z'),
       )
 
-      expect(requests).toHaveLength(4)
+      expect(requests).toHaveLength(6)
       expect(response.projects[0].release).toEqual(
         registeredProjects[0].release,
       )
@@ -232,7 +245,7 @@ describe('canonical project registry', () => {
     const response = await reader()
 
     expect(response.schemaVersion).toBe('v1')
-    expect(response.projects).toHaveLength(3)
+    expect(response.projects).toHaveLength(4)
     expect(
       Number.isNaN(Date.parse(response.generatedAt)),
     ).toBe(false)

@@ -119,6 +119,13 @@ const fixtureRows: readonly FixtureRow[] = [
     {},
     signalSet('planned', 'planned', 'planned', 'planned'),
   ],
+  [
+    'orbis-maya', 'ORBIS Maya', 'Dream & Astro PWA', 'external',
+    'orbisaideveloper/orbis-maya', 'development', 'Local PWA',
+    'not-connected', null, null,
+    { github: { repositoryFullName: 'orbisaideveloper/orbis-maya', defaultBranch: 'main' } },
+    signalSet('unknown', 'unknown', 'unknown', 'unknown'),
+  ],
 ]
 
 export const projectRegistryFixture: ProjectRegistryResponse = {
