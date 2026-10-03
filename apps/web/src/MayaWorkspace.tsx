@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { parseMayaWorkspace, type MayaWorkspace as Workspace } from '@orbis-admin/contracts'
+import { MayaControls } from './MayaControls'
 
 export const loadMayaWorkspace = async (): Promise<Workspace> => {
   const response = await fetch('/api/v1/projects/orbis-maya/workspace', {
@@ -61,7 +62,7 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
       <p>Source version প্রকাশিত release বা AI সংযোগের প্রমাণ নয়।</p>
       <a className="provider-link" href="https://github.com/orbisaideveloper/orbis-maya/actions"
         target="_blank" rel="noopener noreferrer">Maya checks ও release workflow ↗</a>
-      <p>Deploy/publish controls এখনো সক্রিয় নয়; authentication, scoped permissions ও audit প্রয়োজন।</p>
+      <MayaControls />
     </section>
   )
 }

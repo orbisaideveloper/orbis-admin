@@ -1,5 +1,6 @@
 import fastifyStatic from '@fastify/static'
 import { registerMayaWorkspaceRoute } from './routes/maya.js'
+import { registerMayaControls } from './routes/maya-controls.js'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { resolve } from 'node:path'
 import {
@@ -67,6 +68,7 @@ export function buildApp(
 ): FastifyInstance {
   const app = Fastify({
     logger: false,
+    ajv: { customOptions: { removeAdditional: false } },
   })
 
   app.get<{ Reply: HealthResponse }>(
@@ -82,6 +84,7 @@ export function buildApp(
     options.projectRegistryReader,
   )
   registerMayaWorkspaceRoute(app)
+  registerMayaControls(app)
 
   if (options.webRoot) {
     registerWebRuntime(app, options.webRoot)
