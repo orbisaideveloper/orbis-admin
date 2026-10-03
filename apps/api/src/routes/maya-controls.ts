@@ -33,7 +33,7 @@ export const registerMayaControls = (
     reply.header('Cache-Control', 'no-store')
     return reply.send(publicOwnerAuthConfig())
   })
-  app.register(async (secured) => {
+  app.register((secured, _options, done) => {
     const rateLimit = createOwnerRateLimit()
     secured.setErrorHandler((error, _request, reply) => {
       if (error instanceof OwnerAccessError) return reply.code(error.status).send({ error: error.code })
@@ -60,5 +60,6 @@ export const registerMayaControls = (
       schema: { body: { type: 'object', additionalProperties: false,
         required: ['confirmation'], properties: { confirmation: { type: 'string', pattern: '^[0-9a-f]{64}$' } } } },
     }, async (request) => control.execute(await verify(request.headers.authorization), request.body.confirmation))
+    done()
   })
 }
