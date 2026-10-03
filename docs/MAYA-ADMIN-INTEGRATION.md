@@ -63,3 +63,22 @@ advertisements do not grant user membership or AI authorization.
 Full certification is run on the owner's Termux/Linux environment. Every new
 candidate needs exact-head staging verification before main merge. Do not
 merge this source preparation based only on local targeted checks.
+
+## App-first workspace and release isolation
+
+Opening Maya selects the Development app immediately. The actual product URL
+is framed at mobile width; the full-screen link remains available for Google
+OAuth, microphone, installation and browser capabilities that embedded frames
+cannot fully reproduce. Metadata and operational controls sit in collapsed
+panels below the app, rather than ahead of the product view.
+
+Published and Development must use separate deployment services/origins.
+Published points to the last approved production artifact; ordinary source
+pushes and development deployments must never target that service. Switching
+tabs is read-only and never deploys. Missing production URLs remain disabled,
+not substituted with development. The current deploy capability targets only
+the fixed development service. A UI view switch alone does not implement an
+immutable release registry or authorize publication. Public release remains
+pending a verified production target, pinned artifact and approved publish
+policy. Live owner authentication and durable audit enablement also remain
+pending; this UI change must not be reported as full Admin integration.

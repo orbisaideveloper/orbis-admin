@@ -205,7 +205,10 @@ h1, h2, p { margin-top: 0; }
 .maya-workspace iframe {
   display: block;
   width: 100%;
-  min-height: 70dvh;
+  height: calc(100dvh - 180px);
+  min-height: 540px;
+  max-width: 480px;
+  margin-inline: auto;
   margin-top: 1rem;
   border: 1px solid #536781;
   border-radius: 1rem;
@@ -221,3 +224,7 @@ h1, h2, p { margin-top: 0; }
   opacity: .5;
   cursor: not-allowed;
 }
+
+.maya-workspace { padding: 12px; }
+.maya-workspace-tools, .maya-project-tools { margin-top: 1rem; }
+.maya-workspace-tools summary, .maya-project-tools summary { cursor: pointer; padding: 12px; }

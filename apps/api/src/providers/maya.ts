@@ -27,11 +27,14 @@ export const createMayaWorkspaceReader = ({
     Accept: 'application/vnd.github+json', 'User-Agent': 'orbis-admin-readonly',
   }
   if (token?.trim()) headers.Authorization = `Bearer ${token.trim()}`
+  let stage = 'branch'
+  let httpStatus: number | null = null
   const read = async (path: string): Promise<unknown> => {
     const response = await fetchImpl(
       `https://api.github.com/repos/orbisaideveloper/orbis-maya/${path}`,
       { headers, redirect: 'error', signal: AbortSignal.timeout(8_000) },
     )
+    httpStatus = response.status
     if (!response.ok) throw new Error('Maya source unavailable')
     const body = await response.text()
     if (body.length > 65_536) throw new Error('Maya metadata exceeds limit')
@@ -42,13 +45,16 @@ export const createMayaWorkspaceReader = ({
     const revision = recordOf(branch.commit).sha
     if (typeof revision !== 'string' || !/^[a-f0-9]{40}$/.test(revision)) return result
     result.revision = revision
+    stage = 'package'
+    httpStatus = null
     headers.Accept = 'application/vnd.github.raw+json'
     const pkg = recordOf(await read(`contents/package.json?ref=${revision}`))
     if (pkg.name === 'orbis-maya' && typeof pkg.version === 'string' && pkg.version.length <= 80) {
       result.version = pkg.version
     }
   } catch {
-    // Unknown metadata does not imply an outage or a published release.
+    console.warn('Maya source metadata unavailable', { stage, httpStatus })
+    // Log only bounded non-secret diagnostics; never remote bodies or credentials.
   }
   return result
 }

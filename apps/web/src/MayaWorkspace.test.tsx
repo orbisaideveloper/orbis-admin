@@ -25,7 +25,8 @@ describe('Maya workspace views and automatic refresh', () => {
     render(<MayaWorkspace load={async () => data} />)
     expect(screen.getByText('তথ্য সংগ্রহ হচ্ছে…')).toBeTruthy()
     await screen.findByText('0.1.0')
-    fireEvent.click(screen.getByRole('button', { name: 'Public view' }))
+    expect(screen.getByTitle('Maya app preview').getAttribute('src')).toBe(data.developmentUrl)
+    fireEvent.click(screen.getByRole('button', { name: 'Published view' }))
     expect(screen.getByTitle('Maya app preview').getAttribute('src')).toBe(data.publicUrl)
     expect(screen.getByRole('link', { name: 'পূর্ণ স্ক্রিনে খুলুন ↗' }).getAttribute('rel')).toBe('noopener noreferrer')
     fireEvent.click(screen.getByRole('button', { name: 'Development view' }))
@@ -35,7 +36,7 @@ describe('Maya workspace views and automatic refresh', () => {
     render(<MayaWorkspace load={async () => ({ ...data, version: null, revision: null,
       publicUrl: null, developmentUrl: null })} />)
     await screen.findAllByText('সংযুক্ত নয়')
-    expect((screen.getByRole('button', { name: 'Public view' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Published view' }) as HTMLButtonElement).disabled).toBe(true)
   })
   it('uses the default loader and displays a failed initial load', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
@@ -49,7 +50,7 @@ describe('Maya workspace views and automatic refresh', () => {
       .mockResolvedValueOnce({ ...data, version: '0.2.0', publicUrl: null })
     render(<MayaWorkspace load={load} />)
     await act(async () => { await Promise.resolve() })
-    fireEvent.click(screen.getByRole('button', { name: 'Public view' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Published view' }))
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
     expect(screen.getByText('0.1.0')).toBeTruthy()
     expect(screen.getByText(/পুরোনো হতে পারে/)).toBeTruthy()

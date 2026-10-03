@@ -46,6 +46,7 @@ describe('ORBIS Admin V1 shell backed by the registry API', () => {
     render(<TestRouter initialEntries={['/projects']} registryLoader={readyLoader} />)
     await screen.findByRole('heading', { name: 'Projects' })
     await user.click(screen.getByRole('link', { name: /Dream & Astro PWA ORBIS Maya/ }))
+    await user.click(screen.getByText('প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ'))
     expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
     expect(screen.getAllByText('Local PWA').length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: 'Open in GitHub ↗' }).getAttribute('href'))
@@ -56,6 +57,7 @@ describe('ORBIS Admin V1 shell backed by the registry API', () => {
     await user.click(users!)
     expect(screen.getByText(/repository=orbisaideveloper\/orbis-maya/)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Go back one screen' }))
+    await user.click(screen.getByText('প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ'))
     expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
   })
 

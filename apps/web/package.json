@@ -9,10 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@orbis-admin/contracts": "0.1.0",
+    "@supabase/supabase-js": "2.117.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.3",
-    "@orbis-admin/contracts": "0.1.0"
+    "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
