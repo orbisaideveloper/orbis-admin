@@ -7,6 +7,8 @@ export type OwnerAuth = {
   dispose: () => void
 }
 
+const ownerAuthOrigin = 'https://aqcwhqdzniruvoqwfsij.supabase.co'
+
 export const loadOwnerAuth = async (): Promise<OwnerAuth | null> => {
   const response = await fetch('/api/v1/admin/auth-config', { cache: 'no-store',
     signal: AbortSignal.timeout(8_000) })
@@ -14,10 +16,10 @@ export const loadOwnerAuth = async (): Promise<OwnerAuth | null> => {
   const config: unknown = await response.json()
   if (config === null) return null
   if (!config || typeof config !== 'object' || !('origin' in config) || !('publishableKey' in config) ||
-    typeof config.origin !== 'string' || typeof config.publishableKey !== 'string') {
+    config.origin !== ownerAuthOrigin || typeof config.publishableKey !== 'string') {
     throw new Error('Invalid owner login configuration')
   }
-  const client = createClient(config.origin, config.publishableKey, { auth: {
+  const client = createClient(ownerAuthOrigin, config.publishableKey, { auth: {
     flowType: 'pkce', storage: sessionStorage, persistSession: true,
     autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'orbis-admin-owner-session',
   } })

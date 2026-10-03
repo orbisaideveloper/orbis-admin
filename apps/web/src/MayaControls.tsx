@@ -54,7 +54,7 @@ export const MayaControls = ({ load = loadOwnerAuth }: { load?: () => Promise<Ow
   const canAudit = capabilities.includes('orbis-maya:development:audit.read')
   return <section className="detail-panel" aria-label="Maya owner controls">
     <h2>মায়া — Owner controls</h2>
-    <p role="status">{message}</p>
+    <output aria-live="polite">{message}</output>
     {auth ? <div className="page-nav-buttons">
       <button type="button" disabled={busy} onClick={() => { void perform(() => auth.login()) }}>Google দিয়ে owner login</button>
       <button type="button" disabled={busy} onClick={() => {
@@ -62,7 +62,7 @@ export const MayaControls = ({ load = loadOwnerAuth }: { load?: () => Promise<Ow
         void perform(async () => { await auth.logout(); setMessage('Owner session বন্ধ হয়েছে।') })
       }}>Logout</button>
     </div> : null}
-    <label>যাচাই করা Maya main commit SHA
+    <label><span>যাচাই করা Maya main commit SHA</span>
       <input value={revision} maxLength={40} onChange={(event) => { setRevision(event.target.value); setPrepared(null) }} />
     </label>
     <button type="button" disabled={busy || !canDeploy || !/^[0-9a-f]{40}$/.test(revision)} onClick={() => {

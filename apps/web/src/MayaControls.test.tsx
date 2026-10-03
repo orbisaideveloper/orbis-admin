@@ -89,7 +89,7 @@ describe('Maya owner controls', () => {
     await screen.findByText('Owner session যাচাই হয়েছে।')
     if (reason === 'expired') auth.token.mockResolvedValue(null)
     fireEvent.click(screen.getByRole('button', { name: 'Audit দেখুন' }))
-    await screen.findByText(/কাজ নিশ্চিত হয়নি/)
+    expect(await screen.findByText(/কাজ নিশ্চিত হয়নি/)).toBeInTheDocument()
   })
   it('disposes authentication when initialization completes after unmount', async () => {
     const auth = client(); let finish!: (value: typeof auth) => void
@@ -123,13 +123,14 @@ describe('Maya owner controls', () => {
     render(<MayaControls load={async () => client()} />)
     await screen.findByText('Owner session যাচাই হয়েছে।')
     fireEvent.click(screen.getByRole('button', { name: 'Audit দেখুন' }))
-    await screen.findByText(/কাজ নিশ্চিত হয়নি/)
+    expect(await screen.findByText(/কাজ নিশ্চিত হয়নি/)).toBeInTheDocument()
   })
   it('ignores a failed login initializer after unmount', async () => {
     let reject!: (error: Error) => void
     const pending = new Promise<null>((_resolve, fail) => { reject = fail })
     const view = render(<MayaControls load={() => pending} />); view.unmount()
     await act(async () => { reject(new Error('offline')); await pending.catch(() => undefined) })
+    expect(screen.queryByRole('region', { name: 'Maya owner controls' })).toBeNull()
   })
   it('ignores a pending server permission response after unmount', async () => {
     let finish!: (value: Response) => void

@@ -6,7 +6,7 @@ vi.mock('@supabase/supabase-js', () => ({ createClient: sdk.createClient }))
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks() })
 const configure = () => {
   sdk.createClient.mockReturnValue({ auth: sdk })
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ origin: 'https://auth.example', publishableKey: 'public' })))
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ origin: 'https://aqcwhqdzniruvoqwfsij.supabase.co', publishableKey: 'public' })))
 }
 describe('owner Google PKCE session', () => {
   it('restores a tab-scoped session and supports login/logout/disposal', async () => {
@@ -36,7 +36,7 @@ describe('owner Google PKCE session', () => {
     expect(await loadOwnerAuth()).toBeNull()
     await expect(loadOwnerAuth()).rejects.toThrow('Owner login unavailable')
   })
-  it.each([{}, 'bad', { origin: 'x' }, { origin: 1, publishableKey: 'x' }, { origin: 'x', publishableKey: 1 }])('rejects malformed configuration %j', async (config) => {
+  it.each([{ origin: 'https://untrusted.example', publishableKey: 'public' }, {}, 'bad', { origin: 'x' }, { origin: 1, publishableKey: 'x' }, { origin: 'x', publishableKey: 1 }])('rejects malformed configuration %j', async (config) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(config)))
     await expect(loadOwnerAuth()).rejects.toThrow('Invalid owner login configuration')
   })

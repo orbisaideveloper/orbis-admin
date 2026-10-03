@@ -29,9 +29,9 @@ export const registerMayaControls = (
       process.env.ORBIS_ADMIN_RENDER_WRITES, process.env.ORBIS_ADMIN_MAYA_WRITES],
   }),
 ) => {
-  app.get('/api/v1/admin/auth-config', async (_request, reply) => {
+  app.get('/api/v1/admin/auth-config', (_request, reply) => {
     reply.header('Cache-Control', 'no-store')
-    return publicOwnerAuthConfig()
+    return reply.send(publicOwnerAuthConfig())
   })
   app.register(async (secured) => {
     const rateLimit = createOwnerRateLimit()

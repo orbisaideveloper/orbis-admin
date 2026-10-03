@@ -98,3 +98,12 @@ Live enablement still requires Google provider/redirect configuration, first
 verified owner sign-in, explicit canonical binding, server-only audit/provider
 credentials, schema application and real mobile login/deploy/audit verification.
 Do not describe these as completed from mock tests or prepared source alone.
+
+## Static analysis scope
+
+The owner client pins its Supabase origin to the verified Admin authority and
+rejects configuration for any other origin before SDK initialization.
+The existing declarative SQL literal exception (PLSQL S1192 only) also applies
+to the exact Maya control schema source: repeated lifecycle/scope values in
+DDL constraints and RPC policy predicates are intentional. SQL remains
+quality/security scanned; no security rule is suppressed.
