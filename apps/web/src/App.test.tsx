@@ -41,24 +41,20 @@ afterEach(() => {
 })
 
 describe('ORBIS Admin V1 shell backed by the registry API', () => {
-  it('opens Maya project admin and its scoped Users area from Projects', async () => {
+  it('keeps the project registry and isolates the Maya workspace', async () => {
     const user = userEvent.setup()
     render(<TestRouter initialEntries={['/projects']} registryLoader={readyLoader} />)
     await screen.findByRole('heading', { name: 'Projects' })
     await user.click(screen.getByRole('link', { name: /Dream & Astro PWA ORBIS Maya/ }))
-    await user.click(screen.getByText('প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ'))
     expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
-    expect(screen.getAllByText('Local PWA').length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Open in GitHub ↗' }).getAttribute('href'))
-      .toBe('https://github.com/orbisaideveloper/orbis-maya')
-    const users = screen.getAllByRole('link').find((link) =>
-      link.getAttribute('href') === '/detail/users/orbis-maya')
-    expect(users).toBeDefined()
-    await user.click(users!)
-    expect(screen.getByText(/repository=orbisaideveloper\/orbis-maya/)).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Go back one screen' }))
-    await user.click(screen.getByText('প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ'))
-    expect(screen.getByRole('heading', { name: 'ORBIS Maya' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Maya app views' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Open admin menu' })).toBeNull()
+    expect(screen.queryByText('প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ')).toBeNull()
+    await user.click(screen.getByRole('link', { name: 'সব প্রোজেক্টে ফিরুন' }))
+    expect(screen.getByRole('heading', { name: 'Projects' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Control Plane ORBIS Admin/ })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Product Platform ORBIS Foundation/ })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Dream & Astro PWA ORBIS Maya/ })).toBeTruthy()
   })
 
   it('mounts the production BrowserRouter and reads the same-origin registry', async () => {

@@ -386,18 +386,18 @@ const ProjectPage = ({
     </>
   )
 
+  if (project.id === 'orbis-maya') return (
+    <main className="app-shell" aria-label="মায়া প্রোজেক্ট workspace">
+      <Link className="provider-link" to="/projects">সব প্রোজেক্টে ফিরুন</Link>
+      <h1>ORBIS Maya</h1>
+      <MayaWorkspace />
+    </main>
+  )
+
   return (
     <Shell>
       <PageNavigation title={project.name} eyebrow="Project Admin" />
-      {project.id === 'orbis-maya' ? (
-        <>
-          <MayaWorkspace />
-          <details className="maya-project-tools">
-            <summary>প্রোজেক্ট তথ্য ও প্রশাসনিক বিভাগ</summary>
-            {projectDetails}
-          </details>
-        </>
-      ) : projectDetails}
+      {projectDetails}
     </Shell>
   )
 }
