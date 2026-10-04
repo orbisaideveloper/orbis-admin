@@ -25,12 +25,14 @@ describe('Maya workspace views and automatic refresh', () => {
     render(<MayaWorkspace load={async () => data} />)
     expect(screen.getByText('তথ্য সংগ্রহ হচ্ছে…')).toBeTruthy()
     await screen.findByText('0.1.0')
-    expect(screen.getByTitle('Maya app preview').getAttribute('src')).toBe(data.developmentUrl)
+    expect(screen.queryByTitle('Maya app preview')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Published view' }))
     expect(screen.getByTitle('Maya app preview').getAttribute('src')).toBe(data.publicUrl)
     expect(screen.getByRole('link', { name: 'পূর্ণ স্ক্রিনে খুলুন ↗' }).getAttribute('rel')).toBe('noopener noreferrer')
     fireEvent.click(screen.getByRole('button', { name: 'Development view' }))
     expect(screen.getByTitle('Maya app preview').getAttribute('src')).toBe(data.developmentUrl)
+    fireEvent.click(screen.getByRole('button', { name: 'মায়া প্রোজেক্টে ফিরুন' }))
+    expect(screen.queryByTitle('Maya app preview')).toBeNull()
   })
   it('disables missing views and reports unknown source fields', async () => {
     render(<MayaWorkspace load={async () => ({ ...data, version: null, revision: null,

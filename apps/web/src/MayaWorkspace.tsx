@@ -16,7 +16,7 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
 }) => {
   const [data, setData] = useState<Workspace | null>(null)
   const [failed, setFailed] = useState(false)
-  const [selected, setSelected] = useState<'publicUrl' | 'developmentUrl'>('developmentUrl')
+  const [selected, setSelected] = useState<'publicUrl' | 'developmentUrl' | null>(null)
   useEffect(() => {
     let active = true
     let timer: ReturnType<typeof setTimeout>
@@ -33,7 +33,7 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
     void refresh()
     return () => { active = false; clearTimeout(timer) }
   }, [load])
-  const viewUrl = data?.[selected]
+  const viewUrl = selected ? data?.[selected] : null
   let statusMessage = 'তথ্য সংগ্রহ হচ্ছে…'
   if (data) statusMessage = 'প্রতি মিনিটে source তথ্য আপডেট হয়।'
   if (failed) statusMessage = 'আপডেট পাওয়া যায়নি। প্রদর্শিত তথ্য পুরোনো হতে পারে।'
@@ -41,7 +41,7 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
     <section className="detail-panel maya-workspace" aria-label="Maya app views">
       <h2>মায়া — অ্যাপ ও সংস্করণ</h2>
       <output aria-live="polite">{statusMessage}</output>
-      <div className="page-nav-buttons">
+      <div className="maya-view-cards">
         {(['publicUrl', 'developmentUrl'] as const).map((key) => (
           <button key={key} type="button" disabled={!data?.[key]}
             aria-pressed={selected === key} onClick={() => setSelected(key)}>
@@ -49,11 +49,15 @@ export const MayaWorkspace = ({ load = loadMayaWorkspace }: {
           </button>
         ))}
       </div>
-      {viewUrl ? <>
+      {viewUrl ? <div className="maya-app-viewport">
+        <header className="maya-app-toolbar">
+          <button type="button" onClick={() => setSelected(null)}>মায়া প্রোজেক্টে ফিরুন</button>
+          <span>{selected === 'publicUrl' ? 'Published view' : 'Development view'}</span>
         <a className="provider-link" href={viewUrl} target="_blank" rel="noopener noreferrer">পূর্ণ স্ক্রিনে খুলুন ↗</a>
+        </header>
         <iframe title="Maya app preview" src={viewUrl} loading="lazy"
           referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
-      </> : <p>প্রকাশিত বা review URL যুক্ত হলে সংশ্লিষ্ট view চালু হবে। ফোনের localhost এখানে খোলা যায় না।</p>}
+      </div> : <p>প্রকাশিত বা review URL যুক্ত হলে সংশ্লিষ্ট view চালু হবে। ফোনের localhost এখানে খোলা যায় না।</p>}
       <details className="maya-workspace-tools">
         <summary>সংস্করণ, যাচাই ও owner controls</summary>
       {data ? <dl>
