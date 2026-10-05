@@ -320,9 +320,8 @@ const ProjectPage = ({
 
   const repositoryUrl = githubRepositoryUrl(project)
 
-  return (
-    <Shell>
-      <PageNavigation title={project.name} eyebrow="Project Admin" />
+  const projectDetails = (
+    <>
       <section className="project-hero">
         <div>
           <span className="kicker">{project.kind}</span>
@@ -349,7 +348,6 @@ const ProjectPage = ({
         <SummaryTile label="Users" value={usersLabel(project)} />
       </section>
 
-      {project.id === 'orbis-maya' ? <MayaWorkspace /> : null}
 
       <section className="command-grid command-grid--project">
         {projectAreas.map((areaId) => {
@@ -385,6 +383,21 @@ const ProjectPage = ({
           Open in GitHub ↗
         </a>
       ) : null}
+    </>
+  )
+
+  if (project.id === 'orbis-maya') return (
+    <main className="app-shell" aria-label="মায়া প্রোজেক্ট workspace">
+      <Link className="provider-link" to="/projects">সব প্রোজেক্টে ফিরুন</Link>
+      <h1>ORBIS Maya</h1>
+      <MayaWorkspace />
+    </main>
+  )
+
+  return (
+    <Shell>
+      <PageNavigation title={project.name} eyebrow="Project Admin" />
+      {projectDetails}
     </Shell>
   )
 }
