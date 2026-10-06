@@ -1,6 +1,9 @@
 # Maya owner controls — implementation and enablement
 
-This candidate adds Google PKCE owner login, tab-scoped session restoration,
+Merged in PR #16 (main checkpoint `571906e08d989e92e3fa80ed43b61b1de3d9ac87`).
+Main CI/strict Sonar succeeded; live control schema/owner enablement remain pending.
+
+The implementation adds Google PKCE owner login, tab-scoped session restoration,
 server-side verified identity and capability checks, development deployment
 confirmation, and a durable PostgreSQL audit adapter. It does not certify live
 owner access, deploy a public Maya release, or connect Foundation AI.

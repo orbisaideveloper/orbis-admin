@@ -50,7 +50,7 @@ Cross-product identity is linked by a stable ORBIS user identifier. Product data
 
 Production changes follow this path:
 
-`feature branch -> pull request -> preview / targeted verification -> review -> merge to main -> production deployment`
+`feature branch -> pull request -> exact-candidate permanent staging verification -> review -> merge to main -> separately approved deployment`
 
 Direct development on `main` is not the normal workflow. The active repository rules and required checks protect this path; exact current enforcement belongs in `docs/PROJECT-STATE.md` and must be live-verified before changes that depend on it.
 
@@ -69,4 +69,10 @@ Direct development on `main` is not the normal workflow. The active repository r
 
 ## Status
 
-The repository has completed its governance and CI/Sonar baseline and is now in the pre-code architecture/planning phase for the first application scaffold. See `docs/PROJECT-STATE.md` for the verified current status and exact next action.
+The application scaffold, read providers, central identity persistence/API and
+Maya workspace/control source are implemented. PR #16 is merged; Admin main CI
+and strict Sonar checks passed on the reviewed merge commit. Permanent staging
+is operational. Maya owner-control schema application and live enablement remain
+pending; no separate Admin production service was observed in the audited Render
+workspace. See `docs/PROJECT-STATE.md` and `database/README.md` for evidence and
+remaining work. Prepared code is not proof of live owner access or Public release.
