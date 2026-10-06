@@ -1,6 +1,8 @@
 # ORBIS Admin — Unique Identity Foundation
 
-**Status:** Reviewed, un-applied persistence checkpoint for PR #10
+**Status:** Central identity persistence is applied and the identity-write API
+exists in the dedicated Admin project. Maya control migration/live enablement
+remain separate pending work. See `database/README.md` for recorded history.
 
 ## Goal
 
@@ -81,22 +83,26 @@ The dedicated ORBIS Admin database enforces, at minimum:
 - a recorded, audited, active-target-only merge path,
 - additive migrations and indexed foreign-key lookup paths.
 
-A future server-side Identity API must process each write as one transaction:
+The server-side Identity API processes each mutation with transactional database
+logic. Preserve this contract for future changes:
 create or replay its idempotent action, perform the allowed mutation, write the
 audit evidence, and store the outcome. Event details must not contain secrets or
 raw identifiers.
 
-The additive raw PostgreSQL migration is located at
-`database/migrations/20260912150000_identity_foundation.sql`. It is statically
-tested but has not been executed against or applied to any database. Provider
-selection, disposable SQL validation, narrowly scoped server roles, and
-deployment remain separate approval checkpoints.
+The versioned PostgreSQL source begins at
+`database/migrations/20260912150000_identity_foundation.sql`. The dedicated Admin
+Supabase migration history records the applied identity foundation, guards and
+write-API increments. Existing migrations must not be reapplied. Source filenames
+and provider history timestamps differ; preserve the actual managed history.
+The deployed Edge Function uses server-side `SUPABASE_DB_URL`; products call its
+explicit API rather than joining the Admin database directly.
 
 ## Explicitly deferred
 
-- database migration application,
-- identity write API,
-- authentication and authorization,
-- customer login UI,
-- automatic identity merge,
-- production deployment or real customer import.
+- Maya owner-control schema application and live enablement,
+- public Maya membership/capability endpoint and live AI authorization,
+- complete customer login integration and real-account verification,
+- automatic identity merge (never infer permission from matching names),
+- separate Admin production deployment and verified Public Maya release.
+
+Identity persistence/API completion is not authentication or membership completion.

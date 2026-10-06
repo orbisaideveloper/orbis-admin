@@ -51,12 +51,14 @@ is configured and verified.
 
 This is read-only workspace integration, not completion of the control plane.
 The Development view is operational. Public release, modules and live AI
-gateway health remain unverified. Deploy/publish/settings controls are disabled.
+gateway health remain unverified. Development deploy/auth/audit control source is merged, but live enablement
+remains pending. Public publication and settings writes are not certified live.
 
-Before enabling Admin deploy/publish/settings writes, implement verified Admin
-authentication, project/environment-scoped capabilities, confirmation,
-idempotent actions, durable audit records and write-disable controls according
-to ADR-017, ADR-019, ADR-020 and ADR-022. A GitHub workflow link is navigation;
+Before enabling Admin writes, configure and verify the implemented owner-auth,
+scoped-capability, confirmation, idempotency, audit and write-disable boundaries
+described in MAYA-OWNER-CONTROLS.md. Apply the pending Admin control schema through
+the managed database workflow. Public publishing still needs a separate approved
+release policy/target under ADR-017, ADR-019, ADR-020 and ADR-022. A GitHub workflow link is navigation;
 it does not grant repository access or execute a command. Product capability
 advertisements do not grant user membership or AI authorization.
 
