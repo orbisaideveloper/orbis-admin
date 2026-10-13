@@ -45,3 +45,6 @@ export {
   type OrbisIdentity,
   type ProductIdentityReference,
 } from './identity.js'
+
+export { createCustomerSessionClient, CustomerSessionError } from './customer-session.js'
+export type { CentralCustomer, CentralSession, CustomerStorage } from './customer-session.js'

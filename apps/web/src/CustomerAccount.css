@@ -1,0 +1,11 @@
+.customer-account { width: min(100% - 2rem, 32rem); margin: 2rem auto; box-sizing: border-box; }
+.customer-account fieldset { display: grid; gap: 1rem; padding: 0; border: 0; min-width: 0; }
+.customer-account label { display: grid; gap: .4rem; }
+.customer-account input, .customer-account select { width: 100%; min-height: 2.75rem; padding: .65rem; box-sizing: border-box; font: inherit; }
+.customer-account button { min-height: 2.75rem; padding: .65rem 1rem; font: inherit; cursor: pointer; }
+.customer-account button:disabled { cursor: wait; }
+.customer-account strong { overflow-wrap: anywhere; }
+
+.customer-account ul { list-style: none; padding: 0; }
+.customer-account li { border-block-end: 1px solid currentColor; padding-block: 1rem; }
+.customer-account dd { margin-inline-start: 0; overflow-wrap: anywhere; }

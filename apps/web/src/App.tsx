@@ -1,3 +1,5 @@
+import { CustomerAccount } from './CustomerAccount'
+import { CustomerDirectory } from './CustomerDirectory'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   BrowserRouter,
@@ -123,6 +125,7 @@ const AppHeader = () => {
         </button>
         {menuOpen ? (
           <div className="menu" role="menu">
+            <Link role="menuitem" to="/customers">গ্রাহকদের তালিকা</Link>
             <span role="menuitem">Owner view</span>
             <span role="menuitem">Read-only V1</span>
             <span role="menuitem">No secrets rendered</span>
@@ -641,6 +644,12 @@ const AdminRoutes = ({
   )
 }
 
+const ApplicationRoutes = ({ registryLoader }: { registryLoader?: RegistryLoader }) => <Routes>
+  <Route path="/account" element={<CustomerAccount />} />
+  <Route path="/customers" element={<CustomerDirectory />} />
+  <Route path="*" element={<AdminRoutes registryLoader={registryLoader} />} />
+</Routes>
+
 export const TestRouter = ({
   initialEntries,
   registryLoader,
@@ -649,14 +658,14 @@ export const TestRouter = ({
   registryLoader?: RegistryLoader
 }) => (
   <MemoryRouter initialEntries={initialEntries}>
-    <AdminRoutes registryLoader={registryLoader} />
+    <ApplicationRoutes registryLoader={registryLoader} />
   </MemoryRouter>
 )
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AdminRoutes />
+      <ApplicationRoutes />
     </BrowserRouter>
   )
 }
