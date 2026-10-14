@@ -79,7 +79,7 @@ describe('central Orbis customer account screen', () => {
     render(<CustomerAccount load={load} />)
     await screen.findByText('অ্যাকাউন্ট পরিষেবা এখন পাওয়া যাচ্ছে না।')
     fireEvent.click(screen.getByRole('button', { name: 'আবার চেষ্টা করুন' }))
-    await screen.findByRole('button', { name: 'প্রবেশ করুন' })
+    expect(await screen.findByRole('button', { name: 'প্রবেশ করুন' })).toBeTruthy()
   })
   it('handles network failures and ignores initialization after unmount', async () => {
     render(<CustomerAccount load={vi.fn().mockRejectedValue(new Error('private'))} />)

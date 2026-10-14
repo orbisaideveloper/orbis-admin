@@ -60,21 +60,24 @@ export function createCustomerSessionClient(options: {
     current = next
     return next
   }
+  const loadStored = (): CentralSession | null => {
+    const raw = options.storage.getItem(storageKey)
+    if (!raw) return null
+    try {
+      if (raw.length > 20000) throw new CustomerSessionError('CUSTOMER_RESPONSE_INVALID')
+      const stored = JSON.parse(raw) as CentralSession & { version: unknown }
+      if (stored.version !== 1 || !Number.isFinite(stored.expiresAt)) throw new CustomerSessionError('CUSTOMER_RESPONSE_INVALID')
+      const restored = session({ version: 'orbis.customer.v1', customer: stored.customer, session: {
+        accessToken: stored.accessToken, refreshToken: stored.refreshToken, expiresIn: 1,
+      } }, now())
+      restored.expiresAt = stored.expiresAt
+      return restored
+    } catch { clear(); return null }
+  }
   const restoreOnce = async (): Promise<CentralSession | null> => {
     const expected = revision
-    if (!current) {
-      const raw = options.storage.getItem(storageKey)
-      if (!raw) return null
-      try {
-        if (raw.length > 20000) throw new CustomerSessionError('CUSTOMER_RESPONSE_INVALID')
-        const stored = JSON.parse(raw) as CentralSession & { version: unknown }
-        if (stored.version !== 1 || !Number.isFinite(stored.expiresAt)) throw new CustomerSessionError('CUSTOMER_RESPONSE_INVALID')
-        current = session({ version: 'orbis.customer.v1', customer: stored.customer, session: {
-          accessToken: stored.accessToken, refreshToken: stored.refreshToken, expiresIn: 1,
-        } }, now())
-        current.expiresAt = stored.expiresAt
-      } catch { clear(); return null }
-    }
+    if (!current) current = loadStored()
+    if (!current) return null
     const active = current
     try {
       if (active.expiresAt <= now() + 60000) {

@@ -10,6 +10,14 @@ function input(body: unknown, keys: readonly string[]): Input {
   return body as Input
 }
 
+function emailShape(value: string): boolean {
+  const parts = value.split('@')
+  if (parts.length !== 2) return false
+  const [local, domain] = parts
+  const dot = domain.lastIndexOf('.')
+  return /^[^\s@]+$/u.test(local) && /^[^\s@]+$/u.test(domain) && dot > 0 && dot < domain.length - 1
+}
+
 export function createCustomerRecovery(options: CustomerServiceOptions,
   central: Pick<ReturnType<typeof createCustomerService>, 'current' | 'refresh'> = createCustomerService(options)) {
   const request = async (path: string, body: unknown, token?: string, method = 'POST') => {
@@ -32,7 +40,7 @@ export function createCustomerRecovery(options: CustomerServiceOptions,
   return {
     async recover(body: unknown, allowedOrigins: readonly string[]) {
       const value = input(body, ['email', 'redirectTo'])
-      if (typeof value.email !== 'string' || value.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value.email) ||
+      if (typeof value.email !== 'string' || value.email.length > 254 || !emailShape(value.email) ||
           typeof value.redirectTo !== 'string') throw new CustomerError(400, 'CUSTOMER_INPUT_INVALID')
       let redirect: URL
       try { redirect = new URL(value.redirectTo) } catch { throw new CustomerError(400, 'CUSTOMER_INPUT_INVALID') }

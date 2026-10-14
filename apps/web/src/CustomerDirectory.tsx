@@ -19,13 +19,14 @@ export function parseCustomerPage(value: unknown): Page {
 export async function readCustomerPage(auth: OwnerAuth, after: string | null, signal: AbortSignal): Promise<Page> {
   const token = await auth.token()
   if (!token) throw new Error('OWNER_LOGIN_REQUIRED')
-  const response = await fetch(`/api/v1/admin/customers${after ? `?after=${encodeURIComponent(after)}` : ''}`, {
+  const query = after ? '?after=' + encodeURIComponent(after) : ''
+  const response = await fetch('/api/v1/admin/customers' + query, {
     cache: 'no-store', headers: { authorization: `Bearer ${token}` }, signal,
   })
   if (!response.ok) throw new Error('DIRECTORY_UNAVAILABLE')
   return parseCustomerPage(await response.json())
 }
-export function CustomerDirectory({ load = loadOwnerAuth }: { load?: () => Promise<OwnerAuth | null> }) {
+export function CustomerDirectory({ load = loadOwnerAuth }: Readonly<{ load?: () => Promise<OwnerAuth | null> }>) {
   const [auth, setAuth] = useState<OwnerAuth | null>(null)
   const [page, setPage] = useState<Page | null>(null)
   const [history, setHistory] = useState<(string | null)[]>([null])
@@ -81,7 +82,7 @@ export function CustomerDirectory({ load = loadOwnerAuth }: { load?: () => Promi
   return <main className="detail-panel customer-account" aria-labelledby="customer-directory-title">
     <a href="/">Admin হোম</a><h1 id="customer-directory-title">Orbis গ্রাহকদের তালিকা</h1>
     {busy ? <output aria-live="polite">তালিকা যাচাই হচ্ছে…</output> : null}
-    {message ? <p role="status">{message}</p> : null}
+    {message ? <output>{message}</output> : null}
     <div className="page-nav-buttons">
       {auth ? <><button type="button" disabled={busy} onClick={() => { void ownerAction(auth, 'login') }}>Admin লগইন</button><button type="button" disabled={busy} onClick={() => { void ownerAction(auth, 'logout') }}>Admin sign out</button></> : null}
       <button type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>আবার যাচাই করুন</button>

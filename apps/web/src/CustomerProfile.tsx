@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 import type { CentralSession, createCustomerSessionClient } from '@orbis-admin/contracts'
 type Client = ReturnType<typeof createCustomerSessionClient>
 type Profile = { name: string; address: string | null; alternatePhone: string | null; dateOfBirth: string | null; gender: 'male' | 'female' | 'other' | 'prefer-not-to-say' | null }
@@ -15,7 +15,7 @@ export async function customerProfileRequest(client: Client, identity: CentralSe
   if (typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 120 || (profile.address !== null && (typeof profile.address !== 'string' || profile.address.length > 1000)) || (profile.alternatePhone !== null && typeof profile.alternatePhone !== 'string') || (profile.dateOfBirth !== null && typeof profile.dateOfBirth !== 'string') || (profile.gender !== null && profile.gender !== 'male' && profile.gender !== 'female' && profile.gender !== 'other' && profile.gender !== 'prefer-not-to-say') || (contact.email !== null && typeof contact.email !== 'string') || (contact.phone !== null && typeof contact.phone !== 'string')) throw new Error('PROFILE_INVALID')
   return { profile: { name: profile.name, address: profile.address, alternatePhone: profile.alternatePhone, dateOfBirth: profile.dateOfBirth, gender: profile.gender }, contact: { email: contact.email, phone: contact.phone } }
 }
-export function CustomerProfile({ client, customer }: { client: Client; customer: CentralSession['customer'] }) {
+export function CustomerProfile({ client, customer }: Readonly<{ client: Client; customer: CentralSession['customer'] }>) {
   const [data, setData] = useState<Response | null>(null), [busy, setBusy] = useState(true), [message, setMessage] = useState(''), [attempt, setAttempt] = useState(0)
   useEffect(() => {
     let active = true
@@ -27,10 +27,10 @@ export function CustomerProfile({ client, customer }: { client: Client; customer
     ).finally(() => { if (active) setBusy(false) })
     return () => { active = false; controller.abort() }
   }, [client, customer, attempt])
-  async function save(event: FormEvent<HTMLFormElement>) {
+  async function save(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy || !data) return
-    const form = new FormData(event.currentTarget), read = (key: string) => String(form.get(key) ?? '').trim()
+    const form = new FormData(event.currentTarget), read = (key: string) => { const value = form.get(key); return typeof value === 'string' ? value.trim() : '' }
     const gender = read('gender')
     if (!read('name') || (gender && !['male', 'female', 'other', 'prefer-not-to-say'].includes(gender))) { setMessage('প্রোফাইলের তথ্য ঠিক করে দিন।'); return }
     const patch: Profile = { name: read('name'), address: read('address') || null, alternatePhone: read('alternatePhone') || null, dateOfBirth: read('dateOfBirth') || null, gender: (gender || null) as Profile['gender'] }
@@ -52,7 +52,7 @@ export function CustomerProfile({ client, customer }: { client: Client; customer
         <label>লিঙ্গ<select name="gender" defaultValue={data.profile.gender ?? ''}><option value="">উল্লেখ করা হয়নি</option><option value="male">পুরুষ</option><option value="female">মহিলা</option><option value="other">অন্যান্য</option><option value="prefer-not-to-say">বলতে চাই না</option></select></label>
         <button type="submit">প্রোফাইল সংরক্ষণ করুন</button>
       </fieldset></form></> : null}
-    {message ? <p role="status">{message}</p> : null}
+    {message ? <output>{message}</output> : null}
     <button type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>প্রোফাইল আবার পড়ুন</button>
   </section>
 }

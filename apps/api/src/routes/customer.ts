@@ -13,7 +13,7 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
   publicKey: process.env.ORBIS_CUSTOMER_PUBLISHABLE_KEY, serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY,
 })) {
   // This is a customer boundary. It never invokes owner/deployment capabilities.
-  app.register(async scope => {
+  app.register((scope, _options, done) => {
     const windows = new Map<string, { start: number; count: number }>()
     scope.addHook('onRequest', async (request, reply) => {
       reply.header('Cache-Control', 'no-store').header('X-Content-Type-Options', 'nosniff')
@@ -40,7 +40,7 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
       return authorization.slice(7)
     }
     scope.get('/config', async () => ({ available: service.available() }))
-    scope.options('/*', async (_request, reply) => reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    scope.options('/*', (_request, reply) => reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
       .header('Access-Control-Allow-Headers', 'Authorization, Content-Type').code(204).send())
     scope.post('/recover', { bodyLimit: 4096 }, async request => recovery.recover(request.body, allowedOrigins))
     scope.post('/recovery', { bodyLimit: 4096 }, async request => recovery.verify(request.body))
@@ -54,5 +54,6 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
     scope.post('/profile', { bodyLimit: 8192 }, async request => service.profile(token(request.headers.authorization), request.body))
     scope.get('/session', async request => service.current(token(request.headers.authorization)))
     scope.post('/logout', async request => service.logout(token(request.headers.authorization)))
+    done()
   }, { prefix: '/api/v1/customer' })
 }
