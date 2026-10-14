@@ -1,3 +1,6 @@
+import { registerCustomerVerification } from './routes/customer-verification.js'
+import { registerCustomerDirectory } from './routes/customer-directory.js'
+import { registerCustomerRoutes } from './routes/customer.js'
 import fastifyStatic from '@fastify/static'
 import { registerMayaWorkspaceRoute } from './routes/maya.js'
 import { registerMayaControls } from './routes/maya-controls.js'
@@ -85,6 +88,9 @@ export function buildApp(
   )
   registerMayaWorkspaceRoute(app)
   registerMayaControls(app)
+  registerCustomerRoutes(app)
+  registerCustomerVerification(app)
+  registerCustomerDirectory(app)
 
   if (options.webRoot) {
     registerWebRuntime(app, options.webRoot)
