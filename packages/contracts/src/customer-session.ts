@@ -76,7 +76,7 @@ export function createCustomerSessionClient(options: {
   }
   const restoreOnce = async (): Promise<CentralSession | null> => {
     const expected = revision
-    if (!current) current = loadStored()
+    current ??= loadStored()
     if (!current) return null
     const active = current
     try {
@@ -97,7 +97,7 @@ export function createCustomerSessionClient(options: {
   return {
     snapshot: () => current,
     restore() {
-      if (!restoring) restoring = restoreOnce().finally(() => { restoring = null })
+      restoring ??= restoreOnce().finally(() => { restoring = null })
       return restoring
     },
     async authenticate(mode: 'login' | 'signup', input: { identifier: string; password: string; name?: string }) {

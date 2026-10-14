@@ -39,7 +39,7 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
       if (!authorization?.startsWith('Bearer ')) throw new CustomerError(401, 'CUSTOMER_LOGIN_REQUIRED')
       return authorization.slice(7)
     }
-    scope.get('/config', async () => ({ available: service.available() }))
+    scope.get('/config', (_request, reply) => reply.send({ available: service.available() }))
     scope.options('/*', (_request, reply) => reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
       .header('Access-Control-Allow-Headers', 'Authorization, Content-Type').code(204).send())
     scope.post('/recover', { bodyLimit: 4096 }, async request => recovery.recover(request.body, allowedOrigins))
