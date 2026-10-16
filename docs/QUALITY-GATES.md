@@ -24,21 +24,25 @@ As soon as application code exists, the full PR gate becomes mandatory. The appl
 - SonarQube Cloud/SonarCloud analysis,
 - Sonar quality gate completion before the GitHub job succeeds.
 
-## Mandatory staging verification gate
+## Mandatory candidate runtime gate
 
-Every pull request targeting `main` must pass pre-merge staging verification.
+Every PR targeting `main` must pass the existing `Staging Verification Gate`
+context. Since the owner-approved 2026-10-16 delivery decision, this context builds
+and starts the exact PR head in an isolated GitHub Actions runtime. It verifies
+the checked-out SHA, health/revision contract, account HTML and client asset,
+customer configuration contract and project registry API. It loads no production
+Auth/database/provider credentials and preserves its server log. The registry
+check includes public provider reads with a bounded 60-second timeout; failure
+still blocks merge. This certifies candidate runtime behavior, not real-user
+sign-in or profile writes.
 
-The accepted candidate is always the exact PR head SHA. Before merge:
-
-- `staging` must point to that exact SHA,
-- the permanent `orbis-admin-staging` Render service must be manually deployed from that SHA,
-- `/health` must report the same runtime revision,
-- `/health`, `/api/v1/projects`, and the web root must pass public smoke checks,
-- the stable GitHub check context `Staging Verification Gate` must succeed.
-
-A post-merge staging sync does not satisfy this gate. Staging exists to validate the candidate before `main` changes.
-
-The gate requires no Render API credential in GitHub Actions. The deployed non-secret commit revision is surfaced by `/health` for exact-SHA verification.
+The historical check name and workflow path remain for existing ruleset
+compatibility. Neither the `staging` branch nor a Render candidate deployment is
+required. Build/test/coverage/Sonar/security checks, protected-main PR delivery,
+conversation resolution and explicit merge acceptance remain mandatory. After
+merge, deploy the approved main commit explicitly and check the live revision,
+customer configuration and real account behavior separately. Never publish a
+synthetic passing status or bypass the ruleset.
 
 ## SonarQube Cloud / SonarCloud policy
 
@@ -95,7 +99,7 @@ Dependency audit failures at high or critical severity block the PR. Additional 
 
 The stable GitHub Actions context `Build, Test & Safety Audit` has been observed successfully on PR #2 and is now required by the active `Protect main` ruleset with strict branch-up-to-date enforcement.
 
-The `Staging Verification Gate` check must be observed successfully on this governance PR before it is added to the active `Protect main` ruleset. After that ruleset update, GitHub itself must block merges whenever exact staging verification has not passed.
+The existing `Staging Verification Gate` remains required by the active ruleset. Its implementation now certifies the exact candidate in CI as described above; the ruleset is not disabled or bypassed.
 
 ## Render preview
 

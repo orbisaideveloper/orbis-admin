@@ -125,6 +125,7 @@ const AppHeader = () => {
         </button>
         {menuOpen ? (
           <div className="menu" role="menu">
+            <Link role="menuitem" to="/account">আমার Orbis অ্যাকাউন্ট</Link>
             <Link role="menuitem" to="/customers">গ্রাহকদের তালিকা</Link>
             <span role="menuitem">Owner view</span>
             <span role="menuitem">Read-only V1</span>

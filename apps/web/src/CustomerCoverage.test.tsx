@@ -15,7 +15,7 @@ it('cleans up a failed login even if the password control was removed during the
  const pending = deferred<typeof session>(), c = client(); c.restore.mockResolvedValue(null as unknown as typeof session); c.authenticate.mockReturnValue(pending.promise)
  render(<CustomerAccount load={vi.fn().mockResolvedValue(c)} />)
  await screen.findByRole('button', { name: 'প্রবেশ করুন' })
- fireEvent.change(screen.getByLabelText('ফোন নম্বর'), { target: { value: '9876543210' } })
+ fireEvent.change(screen.getByLabelText('ইমেইল'), { target: { value: 'customer@example.test' } })
  fireEvent.change(screen.getByLabelText('পাসওয়ার্ড'), { target: { value: 'password' } })
  fireEvent.submit(screen.getByRole('form')); screen.getByLabelText('পাসওয়ার্ড').remove()
  await act(async () => pending.reject(new Error('private')))
