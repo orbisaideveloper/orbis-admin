@@ -1,3 +1,4 @@
+import { createMayaProfiles } from '../customer/maya-profiles.js'
 import type { FastifyInstance } from 'fastify'
 import { createCustomerRecovery } from '../customer/recovery.js'
 import { createCustomerService, CustomerError } from '../customer/service.js'
@@ -11,7 +12,7 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
 }), allowedOrigins: readonly string[] = (process.env.ORBIS_CUSTOMER_ORIGINS ?? '').split(',').map(value => value.trim()).filter(Boolean), recovery = createCustomerRecovery({
   enabled: process.env.ORBIS_CUSTOMER_AUTH === 'enabled', origin: process.env.ORBIS_CUSTOMER_SUPABASE_URL,
   publicKey: process.env.ORBIS_CUSTOMER_PUBLISHABLE_KEY, serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY,
-})) {
+}), mayaProfiles = createMayaProfiles(service, { serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY })) {
   // This is a customer boundary. It never invokes owner/deployment capabilities.
   app.register((scope, _options, done) => {
     const windows = new Map<string, { start: number; count: number }>()
@@ -50,6 +51,8 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
     scope.post('/refresh', { bodyLimit: 16384 }, async request => service.refresh(request.body))
     scope.get<{ Params: { project: string; environment: string } }>('/session/products/:project/:environment', async request =>
       service.product(token(request.headers.authorization), request.params.project, request.params.environment))
+    scope.get('/maya/profiles', async request => mayaProfiles(token(request.headers.authorization)))
+    scope.post('/maya/profiles', { bodyLimit: 8192 }, async request => mayaProfiles(token(request.headers.authorization), request.body))
     scope.get('/profile', async request => service.profile(token(request.headers.authorization)))
     scope.post('/profile', { bodyLimit: 8192 }, async request => service.profile(token(request.headers.authorization), request.body))
     scope.get('/session', async request => service.current(token(request.headers.authorization)))
