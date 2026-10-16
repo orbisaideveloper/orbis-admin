@@ -146,6 +146,7 @@ describe('ORBIS Admin V1 shell backed by the registry API', () => {
     expect(menuButton.getAttribute('aria-expanded')).toBe('false')
     await user.click(menuButton)
     expect(menuButton.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('menuitem', { name: 'আমার Orbis অ্যাকাউন্ট' }).getAttribute('href')).toBe('/account')
     expect(
       screen.getByRole('menuitem', { name: 'Read-only V1' }),
     ).toBeTruthy()

@@ -276,3 +276,23 @@ Before the relevant production features are enabled, record explicit decisions f
 - production environment topology and secret-management implementation,
 - mature observability/tracing standard,
 - SBOM/provenance/signing and dependency/license policy maturity.
+
+## 2026-10-16 — Exact candidate CI runtime replaces permanent staging
+
+Every PR targeting `main` must pass the existing `Staging Verification Gate`
+context. Since the owner-approved 2026-10-16 delivery decision, this context builds
+and starts the exact PR head in an isolated GitHub Actions runtime. It verifies
+the checked-out SHA, health/revision contract, account HTML and client asset,
+customer configuration contract and project registry API. It loads no production
+Auth/database/provider credentials and preserves its server log. The registry
+check includes public provider reads with a bounded 60-second timeout; failure
+still blocks merge. This certifies candidate runtime behavior, not real-user
+sign-in or profile writes.
+
+The historical check name and workflow path remain for existing ruleset
+compatibility. Neither the `staging` branch nor a Render candidate deployment is
+required. Build/test/coverage/Sonar/security checks, protected-main PR delivery,
+conversation resolution and explicit merge acceptance remain mandatory. After
+merge, deploy the approved main commit explicitly and check the live revision,
+customer configuration and real account behavior separately. Never publish a
+synthetic passing status or bypass the ruleset.

@@ -16,14 +16,11 @@ The project-state handoff is not a substitute for live verification. Check the c
 4. Run targeted verification for the changed area.
 5. Push the feature branch and open a pull request targeting `main`.
 6. Let the normal PR quality checks complete.
-7. Fast-forward the permanent `staging` branch to the exact PR head SHA; do not merge `main`.
-8. Manually deploy `orbis-admin-staging` from that exact staging SHA.
-9. Verify the Render runtime revision equals the PR head and run health/API/web smoke checks.
-10. Require the stable `Staging Verification Gate` check to pass on the exact PR head.
-11. Resolve review conversations and obtain explicit/manual merge acceptance.
-12. Merge to `main` only after both quality and staging gates are green.
-13. Production deployment remains explicit/manual unless a later accepted decision changes it.
-14. Update `docs/PROJECT-STATE.md` in the same PR when the roadmap phase, verified setup, or exact next action materially changes.
+7. Require `Staging Verification Gate` to build and smoke-test the exact PR head in isolated CI.
+8. Resolve review conversations and obtain explicit merge acceptance.
+9. Merge only after both quality/Sonar and candidate-runtime gates are green.
+10. Explicitly deploy main and verify the live revision and account behavior.
+11. Update project-state documentation when verified setup or next actions change.
 
 Do not use `main` as the normal development branch.
 
@@ -119,3 +116,23 @@ Any report-worthy Termux command or command block used as setup, verification, d
 Simple navigation/orientation commands do not normally require standalone reports unless they are part of a larger evidence-producing block.
 
 Preserve failure reports and stop before destructive recovery. Do not force-push, reset, delete, rewrite history, or discard work as an automatic recovery step.
+
+## Candidate runtime delivery decision — 2026-10-16
+
+Every PR targeting `main` must pass the existing `Staging Verification Gate`
+context. Since the owner-approved 2026-10-16 delivery decision, this context builds
+and starts the exact PR head in an isolated GitHub Actions runtime. It verifies
+the checked-out SHA, health/revision contract, account HTML and client asset,
+customer configuration contract and project registry API. It loads no production
+Auth/database/provider credentials and preserves its server log. The registry
+check includes public provider reads with a bounded 60-second timeout; failure
+still blocks merge. This certifies candidate runtime behavior, not real-user
+sign-in or profile writes.
+
+The historical check name and workflow path remain for existing ruleset
+compatibility. Neither the `staging` branch nor a Render candidate deployment is
+required. Build/test/coverage/Sonar/security checks, protected-main PR delivery,
+conversation resolution and explicit merge acceptance remain mandatory. After
+merge, deploy the approved main commit explicitly and check the live revision,
+customer configuration and real account behavior separately. Never publish a
+synthetic passing status or bypass the ruleset.

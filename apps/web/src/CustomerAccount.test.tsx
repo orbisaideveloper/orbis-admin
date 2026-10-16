@@ -18,6 +18,7 @@ describe('central Orbis customer account screen', () => {
     const { client, load } = fixture();await ready(load)
     fireEvent.click(screen.getByRole('button', { name: 'অ্যাকাউন্ট তৈরি' }))
     fireEvent.change(screen.getByLabelText('নাম'), { target: { value: 'অজয়' } })
+    fireEvent.change(screen.getByLabelText('যোগাযোগের ধরন'), { target: { value: 'phone' } })
     fireEvent.change(screen.getByLabelText('ফোন নম্বর'), { target: { value: '9876543210' } })
     fireEvent.change(screen.getByLabelText('পাসওয়ার্ড'), { target: { value: 'password' } })
     fireEvent.submit(screen.getByRole('form'))
@@ -27,7 +28,7 @@ describe('central Orbis customer account screen', () => {
   })
   it('supports email login using the same account flow', async () => {
     const { client, load } = fixture();await ready(load)
-    fireEvent.change(screen.getByLabelText('যোগাযোগের ধরন'), { target: { value: 'email' } })
+    expect((screen.getByLabelText('যোগাযোগের ধরন') as HTMLSelectElement).value).toBe('email')
     fireEvent.change(screen.getByLabelText('ইমেইল'), { target: { value: 'a@b.co' } })
     fireEvent.change(screen.getByLabelText('পাসওয়ার্ড'), { target: { value: 'p' } })
     fireEvent.submit(screen.getByRole('form'))
@@ -46,6 +47,7 @@ describe('central Orbis customer account screen', () => {
     fireEvent.submit(screen.getByRole('form'))
     await screen.findByRole('alert');expect(client.authenticate).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'অ্যাকাউন্ট তৈরি' }))
+    fireEvent.change(screen.getByLabelText('যোগাযোগের ধরন'), { target: { value: 'phone' } })
     fireEvent.change(screen.getByLabelText('ফোন নম্বর'), { target: { value: '9876543210' } })
     fireEvent.change(screen.getByLabelText('পাসওয়ার্ড'), { target: { value: 'short' } })
     fireEvent.submit(screen.getByRole('form'));expect(client.authenticate).not.toHaveBeenCalled()
@@ -56,6 +58,7 @@ describe('central Orbis customer account screen', () => {
     const { client, load } = fixture();let reject!: (error: Error) => void
     client.authenticate.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail }))
     await ready(load)
+    fireEvent.change(screen.getByLabelText('যোগাযোগের ধরন'), { target: { value: 'phone' } })
     fireEvent.change(screen.getByLabelText('ফোন নম্বর'), { target: { value: '9876543210' } })
     const password = screen.getByLabelText('পাসওয়ার্ড') as HTMLInputElement
     fireEvent.change(password, { target: { value: 'password' } })
