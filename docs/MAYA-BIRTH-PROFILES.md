@@ -19,7 +19,7 @@ the currently selected device profile. If that device profile changed while the
 confirmation was open, replacement stops. Signout/account changes abort requests.
 Coordinates/timezone accompany birth details; no chart positions are fabricated.
 
-Database source: database/control/maya-birth-profiles.review.sql in Admin.
+Database source: database/migrations/20261016154208_maya_five_account_birth_profiles.sql in Admin.
 It is NOT applied, a managed migration, an advisor pass or a live-storage result.
 Before deployment: validate SQL in a disposable database with isolation/conflict/
 revocation tests; run advisors; create the managed migration using Supabase CLI;

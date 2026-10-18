@@ -11,12 +11,12 @@ function object(value: unknown): ObjectValue {
   return value as ObjectValue
 }
 function text(value: unknown, limit: number): string {
-  if (typeof value !== 'string' || value.length > limit || Array.from(value).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) return invalid()
+  if (typeof value !== 'string' || value.length > limit || Array.from(value).some(c => c.codePointAt(0)! < 32 || c.codePointAt(0)! === 127)) return invalid()
   return value.trim()
 }
 function location(value: unknown, place: string): BirthLocation {
   const entry = object(value)
-  if (Object.keys(entry).sort().join(',') !== 'label,latitude,longitude,timezone' || entry.label !== place || !place ||
+  if (Object.keys(entry).sort((a,b) => a.localeCompare(b)).join(',') !== 'label,latitude,longitude,timezone' || entry.label !== place || !place ||
       typeof entry.latitude !== 'number' || !Number.isFinite(entry.latitude) || Math.abs(entry.latitude) > 90 ||
       typeof entry.longitude !== 'number' || !Number.isFinite(entry.longitude) || Math.abs(entry.longitude) > 180) return invalid()
   const timezone = text(entry.timezone, 100)
@@ -46,7 +46,7 @@ function birthEntry(value: unknown): BirthEntry {
 }
 export function birthPatch(value: unknown): Patch {
   const entry = object(value)
-  if (Object.keys(entry).sort().join(',') !== 'expectedRevision,profile,relation,slot' ||
+  if (Object.keys(entry).sort((a,b) => a.localeCompare(b)).join(',') !== 'expectedRevision,profile,relation,slot' ||
       !Number.isSafeInteger(entry.expectedRevision) || Number(entry.expectedRevision) < 0 || Number(entry.expectedRevision) > 1_000_000_000) return invalid()
   return { ...birthEntry(entry), expectedRevision: Number(entry.expectedRevision) }
 }
