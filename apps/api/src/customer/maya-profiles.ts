@@ -11,7 +11,7 @@ function object(value: unknown): ObjectValue {
   return value as ObjectValue
 }
 function text(value: unknown, limit: number): string {
-  if (typeof value !== 'string' || value.length > limit || Array.from(value).some(c => c.codePointAt(0)! < 32 || c.codePointAt(0)! === 127)) return invalid()
+  if (typeof value !== 'string' || value.length > limit || Array.from(value).some(c => c.codePointAt(0)! < 32 || (c.codePointAt(0)!) === 127)) return invalid()
   return value.trim()
 }
 function location(value: unknown, place: string): BirthLocation {
