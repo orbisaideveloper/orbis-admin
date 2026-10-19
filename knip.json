@@ -1,7 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignore": [
-    "supabase/functions/orbis-identity-write/index.ts"
+    "supabase/functions/orbis-identity-write/index.ts",
+    "supabase/functions/orbis-maya-access/index.ts"
   ],
   "ignoreDependencies": [
     "jsdom"
