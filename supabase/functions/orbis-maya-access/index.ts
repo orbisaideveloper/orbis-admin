@@ -13,7 +13,18 @@ Deno.serve(async request => {
   try {
     const reader=request.body?.getReader();if(!reader)return json(400,{error:'invalid_request'})
     const chunks:Uint8Array[]=[];let size=0
-    while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>4096){await reader.cancel();return json(413,{error:'input_too_large'})}chunks.push(value)}
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      size += value.length;
+      if (size > 4096) {
+        await reader.cancel();
+        return json(413, { error: 'input_too_large' });
+      }
+      chunks.push(value);
+    }
     const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length}
     body=JSON.parse(new TextDecoder().decode(bytes))
   }catch{return json(400,{error:'invalid_request'})}

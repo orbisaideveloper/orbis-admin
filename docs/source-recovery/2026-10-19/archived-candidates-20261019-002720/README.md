@@ -35,3 +35,11 @@ Restore দরকার হলে checksum যাচাই করে existing fi
 
 এই ধাপে SQL execute, commit, push বা deployment করা হয়নি।
 অন্য দশটি preserved source file এবং Foundation পরিবর্তন করা হয়নি।
+
+
+## Historical analysis classification — 2026-10-20
+
+Only this archive's files/ subtree is excluded from Sonar source analysis.
+It contains exact superseded recovery copies, not deployable source.
+Active database/control, versioned migrations and Edge Functions remain scanned.
+Original archived bytes, file paths and SHA-256 manifest are unchanged.

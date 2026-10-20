@@ -71,3 +71,16 @@ knip.json lists this exact file alongside the existing orbis-identity-write
 entrypoint exception. No directory-wide exclusion or threshold reduction
 is introduced. core/astro policy tests remain separate checks.
 This exception does not certify Deno endpoint integration or live deployment.
+
+
+## Source evolution — 2026-10-20
+
+The manifest above records the original 2026-10-19 recovery snapshot, not hashes
+of all future source revisions. Git retains that original commit and its bytes.
+The legacy-link fixture now uses typed constants, updates only its own binding,
+checks that exactly one binding was changed and rolls all fixture writes back.
+The Edge body-reader loop is expanded without changing its 4096-byte limit.
+Request-boundary tests exercise the stripped TypeScript handler with no database
+or network access; they do not certify a live Deno deployment.
+Archived originals retain their exact bytes and have one narrowly scoped Sonar
+source exclusion documented in the archive README. No quality threshold changes.
