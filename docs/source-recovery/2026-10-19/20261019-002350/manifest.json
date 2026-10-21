@@ -1,0 +1,77 @@
+{
+  "recorded_at": "2026-10-19T00:23:50.345218+05:30",
+  "repository": "orbisaideveloper/orbis-admin",
+  "branch": "feat/maya-membership-gateway",
+  "head": "b4044adbac4dd3480ab3551a219f93f61bc75552",
+  "cached_origin_main": "fb9a5fe20322e53bb97b2d49b8723c030b880f42",
+  "status": "RECOVERED_SOURCE_NOT_LIVE_CERTIFIED",
+  "source": "Existing owner Termux files reviewed after 2026-10-18 audit",
+  "limitations": [
+    "No live database or deployed Edge Function comparison in this step",
+    "No SQL executed or deployment performed",
+    "No files staged, committed or pushed",
+    "Historical source dates are not changed by this preservation date"
+  ],
+  "files": [
+    {
+      "path": "database/control/MAYA-MEMBERSHIP-README.md",
+      "purpose": "Membership-এর ঐতিহাসিক deployment ও source-recovery নির্দেশিকা।",
+      "bytes": 1953,
+      "sha256": "ecc6286b7b9a9a749cd1d3e155d82b493840ec710fb5887a2bd93c0f5b9dbda7"
+    },
+    {
+      "path": "database/control/central-customer-legacy-link.checks.sql",
+      "purpose": "Legacy ID, session, environment ও permission-এর disposable SQL checks।",
+      "bytes": 3502,
+      "sha256": "4821239ec86915981253ffe3080e8fcb618815d20857508ec1c008299d0748ca"
+    },
+    {
+      "path": "database/control/maya-membership.sql",
+      "purpose": "Maya capability grants-এর schema source।",
+      "bytes": 1307,
+      "sha256": "494cc90cdae3e1879cdf10e3bb4d99de625d2fd731b8c4e4c7595a1f6277d661"
+    },
+    {
+      "path": "database/control/maya-astro-capability.sql",
+      "purpose": "Astro interpretation capability-এর SQL source।",
+      "bytes": 353,
+      "sha256": "38e5c7d22b23916c56df6c1e6a6b386a43ed4741c168f445c569a557811a031b"
+    },
+    {
+      "path": "database/control/maya-service-keys.schema-snapshot.sql",
+      "purpose": "Service-key table-এর reconstructed schema; original migration নয়।",
+      "bytes": 1002,
+      "sha256": "07854b541e220e137e049e879ab6c277958ef6ae50c365bc0a940f4cdfdaad2e"
+    },
+    {
+      "path": "database/control/maya-user-onboarding.sql",
+      "purpose": "Maya enrollment source; environment-specific configuration update রয়েছে।",
+      "bytes": 3670,
+      "sha256": "2a7c5957d1b01e9cdc9184037e6b18c0ce4bbb9a94c31bf56fb7bd39e67b79dc"
+    },
+    {
+      "path": "supabase/functions/orbis-maya-access/index.ts",
+      "purpose": "Maya access Edge Function endpoint source।",
+      "bytes": 3301,
+      "sha256": "7653f84ae9f40a06ec54df9d08c79b196c030dbe25eeb997e1583cf36939d153"
+    },
+    {
+      "path": "supabase/functions/orbis-maya-access/core.mjs",
+      "purpose": "Maya capability access policy।",
+      "bytes": 1366,
+      "sha256": "8f2016ba3c848b28fbadbe808aa44f710ce6dbd56dac3ec8434d564438c0ded1"
+    },
+    {
+      "path": "supabase/functions/orbis-maya-access/core.test.mjs",
+      "purpose": "Access policy-এর tests।",
+      "bytes": 1427,
+      "sha256": "de74bb8b8b44093ef9a10d628fa2971a7d89b97d857f1153a3d94b06d5704fb3"
+    },
+    {
+      "path": "supabase/functions/orbis-maya-access/astro.test.mjs",
+      "purpose": "Astro capability permission-এর tests।",
+      "bytes": 647,
+      "sha256": "9105de69933d1f709f6e89b6a6f74df4d8eaddc62d1b71395b1349753102849a"
+    }
+  ]
+}

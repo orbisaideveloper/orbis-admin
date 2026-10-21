@@ -1,0 +1,20 @@
+{
+  "archived_at": "2026-10-19T00:27:20.985360+05:30",
+  "repository": "orbisaideveloper/orbis-admin",
+  "head": "b4044adbac4dd3480ab3551a219f93f61bc75552",
+  "cached_origin_main": "fb9a5fe20322e53bb97b2d49b8723c030b880f42",
+  "files": [
+    {
+      "original_path": "database/control/central-customer-account.review.sql",
+      "sha256": "68fb8c3eb19981450c1026d2eb2fa1b333703967e11c057b6dee98c2de64be2e"
+    },
+    {
+      "original_path": "database/control/central-customer-legacy-link.review.sql",
+      "sha256": "d3ba463ea2903f49fb43bf206b5c2958f0d02ce047d3917e42dedffa51e575f4"
+    },
+    {
+      "original_path": "docs/CENTRAL-CUSTOMER-ACCOUNT.md",
+      "sha256": "66ad2186aa05e6fababa273cb8c83f4754e91bb9e8b5117cf2aeecda9bbf0fc9"
+    }
+  ]
+}
