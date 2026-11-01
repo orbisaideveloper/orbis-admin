@@ -1,3 +1,4 @@
+import { ownerReturnPath } from './owner-navigation'
 import './CustomerAccount.css'
 import { CustomerProfile } from './CustomerProfile'
 import { useEffect, useRef, useState, type SyntheticEvent, type Dispatch, type SetStateAction } from 'react'
@@ -36,6 +37,7 @@ function SignedInAccount({ session, client, busy, logout }: Readonly<{
   session: CentralSession; client: Client; busy: boolean; logout: (client: Client) => Promise<void>
 }>) { return <section aria-label="বর্তমান অ্যাকাউন্ট">
       <p>আপনি লগইন করেছেন।</p>
+      {ownerReturnPath(window.location.search) ? <a href={ownerReturnPath(window.location.search)!}>Admin-এ ফিরে যান</a> : null}
       <p>Orbis ID: <strong>{session.customer.displayId}</strong></p>
       <p>সাধারণ প্রোফাইল সব অ্যাপে একই থাকবে। অ্যাপের নিজস্ব তথ্য এই ID-র সঙ্গে আলাদাভাবে থাকবে।</p>
       <button type="button" disabled={busy} onClick={() => { void logout(client) }}>Sign out</button>

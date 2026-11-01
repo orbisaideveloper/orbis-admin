@@ -56,7 +56,7 @@ export const MayaControls = ({ load = loadOwnerAuth }: { load?: () => Promise<Ow
     <h2>মায়া — Owner controls</h2>
     <output aria-live="polite">{message}</output>
     {auth ? <div className="page-nav-buttons">
-      <button type="button" disabled={busy} onClick={() => { void perform(() => auth.login()) }}>Google দিয়ে owner login</button>
+      <button type="button" disabled={busy} onClick={() => { void perform(() => auth.login()) }}>Owner লগইন</button>
       <button type="button" disabled={busy} onClick={() => {
         setCapabilities([]); setPrepared(null); setAudit(null)
         void perform(async () => { await auth.logout(); setMessage('Owner session বন্ধ হয়েছে।') })
