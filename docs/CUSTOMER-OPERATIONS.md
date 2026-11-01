@@ -91,7 +91,10 @@ counts. These are requests, not unique people or concurrent sessions. Telemetry
 is best effort; failures do not prove an identity, and origin does not prove
 product membership. Previous response contracts remain readable during rollout.
 
-The reviewed Admin-only `admin-customer-dashboard.sql` replaces only the read RPC
+For a fresh disposable installation, run `admin-customer-observability.sql` first
+(telemetry table/recorder), then `admin-customer-dashboard.sql` (read RPC). Existing
+live installations apply only the second file. The reviewed Admin-only
+`admin-customer-dashboard.sql` replaces only the read RPC
 and preserves its service-only grants/live-session check. The disposable CI
 verifies upgrade, full-window counts, per-outcome bounds and source preservation.
 Khata's read-verified canonical principal → ledger owner references may be

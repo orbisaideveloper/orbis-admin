@@ -21,7 +21,7 @@ begin
  snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,null,'22222222-2222-4222-8222-222222222222');
  if (snapshot->>'total')::int<>1 or jsonb_array_length(snapshot->'activity')<>0 then raise exception 'Unknown failure falsely assigned';end if;
  -- Product-local ledger ownership references provide visibility, not auth bindings.
- delete from orbis_customer.product_bindings;
+ delete from orbis_customer.product_bindings where project_id='orbis-khata';
  insert into orbis_identity.product_references values('44444444-4444-7444-8444-444444444444','orbis-khata','ledger-owner',null);
  insert into orbis_identity.product_references values('44444444-4444-7444-8444-444444444444','orbis-maya','ledger-owner',null);
  snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,'orbis-khata');

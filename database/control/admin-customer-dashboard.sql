@@ -32,7 +32,7 @@ begin
   select * from customers where p_after is null or id>p_after order by id limit 51
  ), shown as (select * from page order by id limit 50), events as (
   select l.event_id as id,l.occurred_at as at,l.action,l.outcome,l.code,l.duration_ms,l.project_id,l.orbis_identity_id
-  from orbis_customer.login_activity l where l.occurred_at>=now()-interval '24 hours'
+  from orbis_customer.login_activity l where l.occurred_at>=now()-interval '24 hours' and l.action='login'
  ), scoped_events as (
   select e.* from events e where (p_project is null or e.project_id=p_project)
    and (p_customer is null or exists(select 1 from orbis_customer.accounts a where a.auth_user_id=p_customer and a.orbis_identity_id=e.orbis_identity_id))
@@ -46,10 +46,16 @@ begin
    'displayId',s.display_id,'name',s.name,'email',s.email,'phone',nullif(s.phone,''),'status',s.status,
    'registeredAt',s.created_at,'lastSignInAt',s.last_sign_in_at,'products',s.products) order by s.id) from shown s),'[]'::jsonb),
   'nextCursor',case when (select count(*) from page)>50 then (select id from shown order by id desc limit 1) else null end,
-  'loginTotals',jsonb_build_object('success',(select count(*) from scoped_events where action='login' and outcome='success'),'failure',(select count(*) from scoped_events where action='login' and outcome='failure')),
+  'loginTotals',jsonb_build_object('success',(select count(*) from scoped_events where outcome='success'),'failure',(select count(*) from scoped_events where outcome='failure')),
   'activity',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'at',e.at,'action',e.action,'outcome',e.outcome,'code',e.code,
    'projectId',e.project_id,identity_key,e.orbis_identity_id,'contactHint',null,'durationMs',e.duration_ms) order by e.at desc,e.id desc) from selected_events e),'[]'::jsonb)) into result;
  return result;
 end;
 $$;
+create or replace function public.orbis_admin_customer_observability(p_auth_user_id uuid,p_session_id uuid,p_after uuid default null,p_project text default null,p_customer uuid default null)
+returns jsonb language sql security invoker set search_path='' as $$
+ select orbis_customer.admin_customer_observability(p_auth_user_id,p_session_id,p_after,p_project,p_customer);
+$$;
+revoke all on function orbis_customer.admin_customer_observability(uuid,uuid,uuid,text,uuid),public.orbis_admin_customer_observability(uuid,uuid,uuid,text,uuid) from public,anon,authenticated;
+grant execute on function orbis_customer.admin_customer_observability(uuid,uuid,uuid,text,uuid),public.orbis_admin_customer_observability(uuid,uuid,uuid,text,uuid) to service_role;
 commit;

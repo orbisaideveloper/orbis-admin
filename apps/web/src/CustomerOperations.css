@@ -11,7 +11,7 @@
 .ops-stat strong{font-size:2rem;line-height:1.2}.ops-stat small,.ops-muted,.ops-checked{color:#a8bdd3;font-size:.9rem}
 .ops-stat--success strong{color:#83e0bc}.ops-stat--failure strong{color:#ffbcaa}.ops-card-action{color:#84dcff;font-size:.85rem;margin-top:8px}
 .ops-count{font-size:.9rem;border-radius:20px;background:#233b55;padding:4px 10px;margin-left:8px}
-.ops-table-wrap{overflow-x:auto;border:1px solid #304760;border-radius:12px}.ops-table{width:100%;border-collapse:collapse;text-align:left;font-size:.9rem}
+.customer-operations .ops-table-wrap{padding:0;margin:0;overflow-x:auto;border:1px solid #304760;border-radius:12px}.ops-table{width:100%;border-collapse:collapse;text-align:left;font-size:.9rem}
 .ops-table th{background:#172a40;color:#aecbe0;font-weight:600;white-space:nowrap}.ops-table td,.ops-table th{padding:16px 14px;border-bottom:1px solid #293e57;vertical-align:top}
 .ops-table tbody tr:last-child td{border-bottom:0}.ops-table td{overflow-wrap:anywhere}.ops-table td:nth-child(3){min-width:160px}.ops-table td:nth-child(2){min-width:110px}
 .ops-table small{display:block;color:#9cb5ce;font-size:.8rem;margin-top:6px}.ops-pagination{margin:20px 0 0}
