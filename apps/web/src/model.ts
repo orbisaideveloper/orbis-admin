@@ -17,7 +17,7 @@ export type CommandArea = {
 const commandAreaSpecs: Record<string, string> = {
   projects: 'Projects\tRegistry\tAll ORBIS products, health and operational state.\tAPI-backed registry\thealthy',
   modules: 'Modules / Models\tInventory\tCross-project modules and current/published state.\tRead model\tunknown',
-  users: 'Central Users\tIdentity\tPermanent ORBIS identity registry — later phase.\tDeferred\tplanned',
+  users: 'Central Users\tIdentity\tCentral customer accounts and app relationships.\tOwner-only\tunknown',
   github: 'GitHub Actions\tQuality gate\tRead-only provider integration follows the registry foundation.\tAdapter next\tunknown',
   sonar: 'Sonar Quality\tCode health\tRead-only quality integration follows the provider adapter boundary.\tAdapter queued\tunknown',
   render: 'Render / Deployments\tRuntime\tRead-only deployment integration follows the provider adapter boundary.\tAdapter queued\tunknown',

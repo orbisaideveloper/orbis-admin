@@ -1,3 +1,4 @@
+import { createLoginActivity, observeLogin } from '../customer/login-activity.js'
 import { createMayaProfiles } from '../customer/maya-profiles.js'
 import type { FastifyInstance } from 'fastify'
 import { createCustomerRecovery } from '../customer/recovery.js'
@@ -13,6 +14,7 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
   enabled: process.env.ORBIS_CUSTOMER_AUTH === 'enabled', origin: process.env.ORBIS_CUSTOMER_SUPABASE_URL,
   publicKey: process.env.ORBIS_CUSTOMER_PUBLISHABLE_KEY, serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY,
 }), mayaProfiles = createMayaProfiles(service, { serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY })) {
+  const recordLogin = createLoginActivity({ enabled: process.env.ORBIS_CUSTOMER_OBSERVABILITY === 'enabled', origin: process.env.ORBIS_CUSTOMER_SUPABASE_URL, serviceKey: process.env.ORBIS_CUSTOMER_SERVICE_KEY })
   // This is a customer boundary. It never invokes owner/deployment capabilities.
   app.register((scope, _options, done) => {
     const windows = new Map<string, { start: number; count: number }>()
@@ -46,8 +48,8 @@ export function registerCustomerRoutes(app: FastifyInstance, service: Service = 
     scope.post('/recover', { bodyLimit: 4096 }, async request => recovery.recover(request.body, allowedOrigins))
     scope.post('/recovery', { bodyLimit: 4096 }, async request => recovery.verify(request.body))
     scope.post('/password', { bodyLimit: 4096 }, async request => recovery.password(token(request.headers.authorization), request.body))
-    scope.post('/signup', { bodyLimit: 4096 }, async request => service.authenticate(request.body, true))
-    scope.post('/login', { bodyLimit: 4096 }, async request => service.authenticate(request.body, false))
+    scope.post('/signup', { bodyLimit: 4096 }, async request => observeLogin(() => service.authenticate(request.body, true), true, request.headers.origin, recordLogin))
+    scope.post('/login', { bodyLimit: 4096 }, async request => observeLogin(() => service.authenticate(request.body, false), false, request.headers.origin, recordLogin))
     scope.post('/refresh', { bodyLimit: 16384 }, async request => service.refresh(request.body))
     scope.get<{ Params: { project: string; environment: string } }>('/session/products/:project/:environment', async request =>
       service.product(token(request.headers.authorization), request.params.project, request.params.environment))

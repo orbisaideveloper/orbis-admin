@@ -1,3 +1,4 @@
+import { CustomerOperations } from './CustomerOperations'
 import { CustomerAccount } from './CustomerAccount'
 import { CustomerDirectory } from './CustomerDirectory'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
@@ -126,6 +127,7 @@ const AppHeader = () => {
         {menuOpen ? (
           <div className="menu" role="menu">
             <Link role="menuitem" to="/account">আমার Orbis অ্যাকাউন্ট</Link>
+            <Link role="menuitem" to="/operations">কাস্টমার ও অ্যাপের ব্যবহার</Link>
             <Link role="menuitem" to="/customers">গ্রাহকদের তালিকা</Link>
             <span role="menuitem">Owner view</span>
             <span role="menuitem">Read-only V1</span>
@@ -180,7 +182,7 @@ const PageNavigation = ({
 const CommandCard = ({ area }: { area: CommandArea }) => (
   <Link
     className={`command-card command-card--${area.tone}`}
-    to={`/category/${area.id}`}
+    to={area.id === 'users' ? '/operations' : `/category/${area.id}`}
   >
     <div className="command-card-topline">
       <span>{area.eyebrow}</span>
@@ -353,6 +355,7 @@ const ProjectPage = ({
       </section>
 
 
+      <Link className="provider-link" to={'/operations?project=' + encodeURIComponent(project.id)}>গ্রাহক ও login কার্যকলাপ</Link>
       <section className="command-grid command-grid--project">
         {projectAreas.map((areaId) => {
           const area = findCommandArea(areaId)!
@@ -648,6 +651,7 @@ const AdminRoutes = ({
 const ApplicationRoutes = ({ registryLoader }: { registryLoader?: RegistryLoader }) => <Routes>
   <Route path="/account" element={<CustomerAccount />} />
   <Route path="/customers" element={<CustomerDirectory />} />
+  <Route path="/operations" element={<CustomerOperations />} />
   <Route path="*" element={<AdminRoutes registryLoader={registryLoader} />} />
 </Routes>
 

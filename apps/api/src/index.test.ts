@@ -96,7 +96,7 @@ describe('ORBIS Admin API', () => {
 
     expect(response.statusCode).toBe(200)
     expect(body.schemaVersion).toBe('v1')
-    expect(body.projects).toHaveLength(4)
+    expect(body.projects).toHaveLength(5)
     expect(body.projects[0]).toMatchObject({
       id: 'orbis-admin',
       repository: 'orbisaideveloper/orbis-admin',

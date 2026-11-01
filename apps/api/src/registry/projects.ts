@@ -134,6 +134,7 @@ export const registeredProjects = [
     },
     signals: unknownSignals,
   },
+  { id: 'orbis-khata', name: 'ORBIS Khata', kind: 'Accounting', lifecycle: 'external', repository: 'orbisaideveloper/orbis-khata', environment: { kind: 'external', label: 'Independent product' }, release: { current: null, published: null }, users: { mode: 'external', count: null }, modules: null, providers: {}, signals: unknownSignals },
 ] as const satisfies readonly ProjectRegistryProject[]
 
 type GitHubProjectReader = (

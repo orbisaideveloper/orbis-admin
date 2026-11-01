@@ -85,3 +85,14 @@ Earlier PR #4 scaffold, PR #6 registry, PR #9 Render read provider and PR #10
 identity foundation milestones remain historical delivery evidence, not current
 main/deployment identities. Older planning documents describe their milestone
 scope; current source and fresh provider/owner reports determine completion.
+
+## 2026-11-01 — Admin customer/app operations candidate
+
+Current source was inspected at main `8cd037e` before branch work. Owner approved
+Admin-only implementation and commit/push; no Khata edits or live product writes.
+`feat/admin-customer-observability` adds owner-protected central account/app
+navigation and best-effort login/signup telemetry. See CUSTOMER-OPERATIONS.md for
+scope, truthful unavailable metrics, security and dedicated Admin release steps.
+The SQL is prepared, not applied. Live enablement requires reviewed managed Admin
+release plus Admin environment/deployment; no Khata migration/deployment is needed.
+Deliver through a normal PR and exact-head CI. No automatic merge or deployment.
