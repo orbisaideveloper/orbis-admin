@@ -67,7 +67,7 @@ jobs:
 
           for file in "${required_files[@]}"; do
             if [[ ! -s "$file" ]]; then
-              echo "ERROR: required governance/quality file missing or empty: $file"
+              echo "ERROR: required governance/quality file missing or empty: $file" >&2
               exit 1
             fi
           done
@@ -82,7 +82,7 @@ jobs:
           require_property() {
             local expected="$1"
             if ! grep -Fxq "$expected" sonar-project.properties; then
-              echo "ERROR: Sonar project contract mismatch: expected '$expected'"
+              echo "ERROR: Sonar project contract mismatch: expected '$expected'" >&2
               exit 1
             fi
           }
@@ -92,7 +92,7 @@ jobs:
           require_property 'sonar.projectName=orbis-admin'
 
           if grep -Eq '^sonar\.projectKey=.*(foundation|_orbis$)' sonar-project.properties; then
-            echo "ERROR: ORBIS Admin must never analyze another ORBIS Sonar project."
+            echo "ERROR: ORBIS Admin must never analyze another ORBIS Sonar project." >&2
             exit 1
           fi
 
@@ -111,7 +111,7 @@ jobs:
           fi
 
           if [[ -n "$blocked" ]]; then
-            echo "ERROR: tracked sensitive-looking files are not allowed:"
+            echo "ERROR: tracked sensitive-looking files are not allowed:" >&2
             printf '%s\n' "$blocked"
             exit 1
           fi
@@ -145,7 +145,7 @@ jobs:
 
           for file in package.json package-lock.json sonar-project.properties; do
             if [[ ! -s "$file" ]]; then
-              echo "ERROR: application code exists but required quality file is missing: $file"
+              echo "ERROR: application code exists but required quality file is missing: $file" >&2
               exit 1
             fi
           done
@@ -201,12 +201,12 @@ jobs:
           set -euo pipefail
 
           if [[ ! -s coverage/coverage-summary.json ]]; then
-            echo "ERROR: coverage/coverage-summary.json is required."
+            echo "ERROR: coverage/coverage-summary.json is required." >&2
             exit 1
           fi
 
           if [[ ! -s coverage/lcov.info ]]; then
-            echo "ERROR: coverage/lcov.info is required for SonarQube Cloud."
+            echo "ERROR: coverage/lcov.info is required for SonarQube Cloud." >&2
             exit 1
           fi
 
@@ -251,7 +251,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -z "${SONAR_TOKEN:-}" ]]; then
-            echo "ERROR: SONAR_TOKEN is required before application code can pass this PR gate."
+            echo "ERROR: SONAR_TOKEN is required before application code can pass this PR gate." >&2
             exit 1
           fi
           echo "SonarQube Cloud token is configured."
@@ -382,7 +382,7 @@ jobs:
           set -euo pipefail
 
           if [[ -z "${SONAR_TOKEN:-}" ]]; then
-            echo "ERROR: GitHub Actions secret SONAR_TOKEN is required."
+            echo "ERROR: GitHub Actions secret SONAR_TOKEN is required." >&2
             exit 1
           fi
 
