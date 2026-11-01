@@ -131,3 +131,23 @@ Sonar check surfaced 11 pre-existing workflow diagnostics requiring stderr.
 A focused follow-up redirects only those error messages (no logic or gate changes).
 Verify its PR/main quality result before declaring all checks green. Product MB,
 premium integration and interactive owner-browser acceptance remain distinct.
+
+## 2026-11-01 — Sole-owner permission and central login follow-up
+
+Owner explicitly confirmed orbisaideveloper@gmail.com as the only permanent Admin
+account. Its database-verified auth/ORBIS IDs are configured as the sole Render
+owner binding with the exact existing customer-read, Maya development audit-read
+and development-deploy capabilities. This does not create a delete control or
+execute a deployment. Action-specific confirmations/write switches remain intact.
+Owner configuration deploy `dep-dbjeu4u7bikc73f8mft0` is LIVE; protected reads now
+return 401 OWNER_LOGIN_REQUIRED rather than OWNER_NOT_CONFIGURED without a token.
+
+Live provider inspection showed Google disabled and email authentication enabled.
+This focused frontend follow-up therefore uses the existing central email/password
+account page for owner sign-in, reuses its validated session and returns only to
+allowlisted Admin pages. Existing legacy tab sessions remain a fallback; central
+identity takes precedence and a central/network error never silently falls back
+to another identity. Both stores are cleared on owner logout. Server-side owner
+ID/capability enforcement is unchanged; ordinary signup never grants owner rights.
+Khata source/data and customer credentials are unchanged. Validate exact-head
+quality/runtime checks, merge, deploy and live bundle/401 checks before release.

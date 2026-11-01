@@ -42,6 +42,13 @@ describe('central Orbis customer account screen', () => {
     expect(client.restore).toHaveBeenCalledTimes(1)
     expect(screen.queryByLabelText('পাসওয়ার্ড')).toBeNull()
   })
+  it('offers a safe return to the requested Admin page after login', async () => {
+    window.history.replaceState({}, '', '/account?returnTo=%2Foperations')
+    const view = render(<CustomerAccount load={fixture(session).load} />)
+    try {
+      expect(await screen.findByRole('link', { name: 'Admin-এ ফিরে যান' })).toHaveAttribute('href', '/operations')
+    } finally { view.unmount(); window.history.replaceState({}, '', '/') }
+  })
   it('validates missing and short signup input without contacting authentication', async () => {
     const { client, load } = fixture();await ready(load)
     fireEvent.submit(screen.getByRole('form'))

@@ -1,3 +1,5 @@
+import { createCustomerSessionClient } from '@orbis-admin/contracts'
+import { ownerSignInPath } from './owner-navigation'
 import { createClient } from '@supabase/supabase-js'
 
 export type OwnerAuth = {
@@ -23,21 +25,27 @@ export const loadOwnerAuth = async (): Promise<OwnerAuth | null> => {
     flowType: 'pkce', storage: sessionStorage, persistSession: true,
     autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'orbis-admin-owner-session',
   } })
+  const central = createCustomerSessionClient({ baseUrl: window.location.origin, storage: localStorage })
   return {
     async token() {
+      const centralToken = await central.accessToken()
+      if (centralToken) return centralToken
       const { data, error } = await client.auth.getSession()
       if (error) throw new Error('Owner session unavailable')
       return data.session?.access_token ?? null
     },
     async login() {
-      const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: {
-        redirectTo: `${window.location.origin}${window.location.pathname}`,
-      } })
-      if (error) throw new Error('Owner login unavailable')
+      // The shared account page owns passwords; the API grants owner rights by ID.
+      window.location.assign(ownerSignInPath(window.location.pathname))
     },
     async logout() {
-      const { error } = await client.auth.signOut({ scope: 'local' })
-      if (error) throw new Error('Owner logout unavailable')
+      // Always clear both current central and legacy tab-scoped session stores.
+      const [centralResult, legacyResult] = await Promise.allSettled([
+        central.logout(), client.auth.signOut({ scope: 'local' }),
+      ])
+      if (centralResult.status === 'rejected' || legacyResult.status === 'rejected' || legacyResult.value.error) {
+        throw new Error('Owner logout unavailable')
+      }
     },
     dispose() { void client.auth.stopAutoRefresh() },
   }
