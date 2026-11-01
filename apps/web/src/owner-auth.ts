@@ -34,9 +34,10 @@ export const loadOwnerAuth = async (): Promise<OwnerAuth | null> => {
       if (error) throw new Error('Owner session unavailable')
       return data.session?.access_token ?? null
     },
-    async login() {
+    login() {
       // The shared account page owns passwords; the API grants owner rights by ID.
       window.location.assign(ownerSignInPath(window.location.pathname))
+      return Promise.resolve()
     },
     async logout() {
       // Always clear both current central and legacy tab-scoped session stores.

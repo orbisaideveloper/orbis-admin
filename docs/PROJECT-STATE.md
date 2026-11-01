@@ -151,3 +151,8 @@ to another identity. Both stores are cleared on owner logout. Server-side owner
 ID/capability enforcement is unchanged; ordinary signup never grants owner rights.
 Khata source/data and customer credentials are unchanged. Validate exact-head
 quality/runtime checks, merge, deploy and live bundle/401 checks before release.
+
+Owner-login candidate a33ed44 passed 673 tests/100% coverage and runtime CI;
+strict Sonar caught two minor maintainability findings. Follow-up uses Set.has
+for the redirect allowlist and returns the navigation promise without an unused
+async modifier. No permission/authentication behavior or quality policy changed.
