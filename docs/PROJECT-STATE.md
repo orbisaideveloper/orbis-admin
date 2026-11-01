@@ -104,3 +104,10 @@ high-severity undici/zod advisories before Sonar ran. Follow-up updates only tho
 two transitive lockfile entries within their existing ranges; unrelated optional
 platform metadata is retained. Re-run exact-head gates; do not treat the first
 candidate's skipped Sonar scan/UNKNOWN diagnostic as a quality pass.
+
+Candidate `a808257` passed the security audit after the two lockfile patches,
+plus all tests/coverage/build, PostgreSQL acceptance and native runtime. Actual
+Sonar analysis reported 100% new coverage, 0% duplication, A ratings and no
+hotspots; strict zero-issue check correctly rejected five style/accessibility
+issues. The follow-up extracts the UI title, uses semantic output, and names
+repeated SQL fields. No suppressions, threshold changes or behavioral changes.

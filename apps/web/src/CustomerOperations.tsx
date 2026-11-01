@@ -59,15 +59,18 @@ export function CustomerOperations({ load = loadOwnerAuth }: Readonly<{ load?: (
     finally { setBusy(false) }
   }
   const scope = params.get('project'), customer = params.get('customer')
+  let title = 'কাস্টমার ও অ্যাপের ব্যবহার'
+  if (scope) title = scope + ' · অ্যাপের ব্যবহার'
+  else if (customer) title = 'কাস্টমারের বিস্তারিত'
   const next = new URLSearchParams(params)
   if (data?.nextCursor) next.set('after', data.nextCursor)
   return <main className="customer-operations" aria-labelledby="operations-title">
     <nav aria-label="Operations navigation"><Link to="/">Admin হোম</Link><Link to="/operations">সেন্ট্রাল গ্রাহক</Link><Link to="/operations?project=orbis-khata">ORBIS Khata</Link><Link to="/customers">গ্রাহকদের পরিচয় তালিকা</Link></nav>
-    <header><p className="kicker">ORBIS ADMIN · READ ONLY</p><h1 id="operations-title">{scope ? scope + ' · অ্যাপের ব্যবহার' : customer ? 'কাস্টমারের বিস্তারিত' : 'কাস্টমার ও অ্যাপের ব্যবহার'}</h1>
+    <header><p className="kicker">ORBIS ADMIN · READ ONLY</p><h1 id="operations-title">{title}</h1>
       <p>সেন্ট্রাল পরিচয় ও login কার্যকলাপ। খাতার হিসাব এখানে পরিবর্তন করা হয় না।</p></header>
     <div className="ops-actions"><button type="button" disabled={busy} onClick={() => setAttempt(value => value + 1)}>আবার যাচাই করুন</button>
       {auth ? <button type="button" disabled={busy} onClick={() => { void signIn() }}>Admin লগইন</button> : null}</div>
-    {message ? <p role="status">{message}</p> : null}
+    {message ? <output>{message}</output> : null}
     {data ? <>
       <p>পরীক্ষার সময়: {time(data.checkedAt)}</p>
       <dl className="ops-summary"><dt>এই scope-এর account</dt><dd>{data.total}</dd><dt>সেন্ট্রাল পরিচয় অসম্পূর্ণ</dt><dd>{data.unlinked}</dd></dl>

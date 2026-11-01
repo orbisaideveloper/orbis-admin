@@ -19,12 +19,15 @@ revoke all on orbis_customer.login_activity from public,anon,authenticated,servi
 
 create function orbis_customer.record_login_activity(p_event jsonb) returns void
 language plpgsql security definer set search_path='' as $$
+declare
+ event_action text := p_event->>'action';
+ event_outcome text := p_event->>'outcome';
 begin
- if p_event->>'action' not in ('login','signup') or p_event->>'outcome' not in ('success','failure') then
+ if event_action not in ('login','signup') or event_outcome not in ('success','failure') then
   raise exception 'INVALID_LOGIN_ACTIVITY';
  end if;
  insert into orbis_customer.login_activity(event_id,action,outcome,code,duration_ms,project_id,orbis_identity_id)
- values((p_event->>'id')::uuid,p_event->>'action',p_event->>'outcome',p_event->>'code',(p_event->>'durationMs')::integer,
+ values((p_event->>'id')::uuid,event_action,event_outcome,p_event->>'code',(p_event->>'durationMs')::integer,
   case p_event->>'origin' when 'https://orbis-khata.onrender.com' then 'orbis-khata'
    when 'https://orbis-maya-development.onrender.com' then 'orbis-maya' else null end,
   (p_event->>'orbisIdentityId')::uuid)
@@ -38,7 +41,9 @@ language sql security invoker set search_path='' as $$ select orbis_customer.rec
 
 create function orbis_customer.admin_customer_observability(p_auth_user_id uuid,p_session_id uuid,p_after uuid default null,p_project text default null,p_customer uuid default null)
 returns jsonb language plpgsql security definer set search_path='' as $$
-declare result jsonb;
+declare
+ result jsonb;
+ identity_key constant text := 'orbisIdentityId';
 begin
  if not exists(select 1 from auth.sessions s join auth.users u on u.id=s.user_id
    where s.id=p_session_id and s.user_id=p_auth_user_id and u.deleted_at is null
@@ -74,12 +79,12 @@ begin
  )
  select jsonb_build_object('version','orbis.admin.customers.v1','checkedAt',now(),
   'total',(select count(*) from customers),'unlinked',(select count(*) from customers where orbis_identity_id is null),
-  'customers',coalesce((select jsonb_agg(jsonb_build_object('authUserId',s.id,'orbisIdentityId',s.orbis_identity_id,
+  'customers',coalesce((select jsonb_agg(jsonb_build_object('authUserId',s.id,identity_key,s.orbis_identity_id,
    'displayId',s.display_id,'name',s.name,'email',s.email,'phone',nullif(s.phone,''),'status',s.status,
    'registeredAt',s.created_at,'lastSignInAt',s.last_sign_in_at,'products',s.products) order by s.id) from shown s),'[]'::jsonb),
   'nextCursor',case when (select count(*) from page)>50 then (select id from shown order by id desc limit 1) else null end,
   'activity',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'at',e.at,'action',e.action,'outcome',e.outcome,'code',e.code,
-   'projectId',e.project_id,'orbisIdentityId',e.orbis_identity_id,'contactHint',null,'durationMs',e.duration_ms) order by e.at desc,e.id desc) from selected_events e),'[]'::jsonb)) into result;
+   'projectId',e.project_id,identity_key,e.orbis_identity_id,'contactHint',null,'durationMs',e.duration_ms) order by e.at desc,e.id desc) from selected_events e),'[]'::jsonb)) into result;
  return result;
 end;
 $$;
