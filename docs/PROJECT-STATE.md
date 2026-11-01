@@ -96,3 +96,11 @@ scope, truthful unavailable metrics, security and dedicated Admin release steps.
 The SQL is prepared, not applied. Live enablement requires reviewed managed Admin
 release plus Admin environment/deployment; no Khata migration/deployment is needed.
 Deliver through a normal PR and exact-head CI. No automatic merge or deployment.
+
+PR #22 first candidate `4ea7136` passed 669 tests with 100% coverage on all four
+metrics, zero-warning lint/typecheck, KNIP/JSCPD, dedicated PostgreSQL 17.6 SQL
+acceptance and native candidate runtime checks. Dependency audit found existing
+high-severity undici/zod advisories before Sonar ran. Follow-up updates only those
+two transitive lockfile entries within their existing ranges; unrelated optional
+platform metadata is retained. Re-run exact-head gates; do not treat the first
+candidate's skipped Sonar scan/UNKNOWN diagnostic as a quality pass.
