@@ -32,7 +32,7 @@ const unknownRenderReader = async (registration: {
 
 describe('canonical project registry', () => {
   it('keeps registration metadata separate from live provider signals', () => {
-    expect(registeredProjects).toHaveLength(4)
+    expect(registeredProjects).toHaveLength(5)
 
     const admin = registeredProjects[0]
     expect(admin.id).toBe('orbis-admin')
@@ -254,7 +254,7 @@ describe('canonical project registry', () => {
     const response = await reader()
 
     expect(response.schemaVersion).toBe('v1')
-    expect(response.projects).toHaveLength(4)
+    expect(response.projects).toHaveLength(5)
     expect(
       Number.isNaN(Date.parse(response.generatedAt)),
     ).toBe(false)

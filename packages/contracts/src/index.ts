@@ -48,3 +48,6 @@ export {
 
 export { createCustomerSessionClient, CustomerSessionError } from './customer-session.js'
 export type { CentralCustomer, CentralSession, CustomerStorage } from './customer-session.js'
+
+export { observationId, parseCustomerObservability } from './customer-observability.js'
+export type { CustomerUsage, LoginActivity, CustomerObservability } from './customer-observability.js'

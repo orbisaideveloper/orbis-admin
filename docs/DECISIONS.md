@@ -296,3 +296,12 @@ conversation resolution and explicit merge acceptance remain mandatory. After
 merge, deploy the approved main commit explicitly and check the live revision,
 customer configuration and real account behavior separately. Never publish a
 synthetic passing status or bypass the ruleset.
+
+## 2026-11-01 — Central customer/app read model stays in Admin
+
+Owner approved app-centric and customer-centric operations in Admin, starting
+with Khata relationships. This release does not modify Khata. Missing product
+storage/entitlement metrics remain unavailable. Successful central identity and
+app links are distinct from active-use/premium claims. Failure telemetry contains
+no credentials or submitted contacts, is bounded and best-effort, and never gates
+authentication. See CUSTOMER-OPERATIONS.md for the versioned boundary and rollout.

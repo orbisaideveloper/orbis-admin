@@ -1,3 +1,4 @@
+import { registerCustomerObservability } from './routes/customer-observability.js'
 import { registerCustomerVerification } from './routes/customer-verification.js'
 import { registerCustomerDirectory } from './routes/customer-directory.js'
 import { registerCustomerRoutes } from './routes/customer.js'
@@ -91,6 +92,7 @@ export function buildApp(
   registerCustomerRoutes(app)
   registerCustomerVerification(app)
   registerCustomerDirectory(app)
+  registerCustomerObservability(app)
 
   if (options.webRoot) {
     registerWebRuntime(app, options.webRoot)

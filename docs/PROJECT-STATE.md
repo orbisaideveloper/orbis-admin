@@ -85,3 +85,29 @@ Earlier PR #4 scaffold, PR #6 registry, PR #9 Render read provider and PR #10
 identity foundation milestones remain historical delivery evidence, not current
 main/deployment identities. Older planning documents describe their milestone
 scope; current source and fresh provider/owner reports determine completion.
+
+## 2026-11-01 — Admin customer/app operations candidate
+
+Current source was inspected at main `8cd037e` before branch work. Owner approved
+Admin-only implementation and commit/push; no Khata edits or live product writes.
+`feat/admin-customer-observability` adds owner-protected central account/app
+navigation and best-effort login/signup telemetry. See CUSTOMER-OPERATIONS.md for
+scope, truthful unavailable metrics, security and dedicated Admin release steps.
+The SQL is prepared, not applied. Live enablement requires reviewed managed Admin
+release plus Admin environment/deployment; no Khata migration/deployment is needed.
+Deliver through a normal PR and exact-head CI. No automatic merge or deployment.
+
+PR #22 first candidate `4ea7136` passed 669 tests with 100% coverage on all four
+metrics, zero-warning lint/typecheck, KNIP/JSCPD, dedicated PostgreSQL 17.6 SQL
+acceptance and native candidate runtime checks. Dependency audit found existing
+high-severity undici/zod advisories before Sonar ran. Follow-up updates only those
+two transitive lockfile entries within their existing ranges; unrelated optional
+platform metadata is retained. Re-run exact-head gates; do not treat the first
+candidate's skipped Sonar scan/UNKNOWN diagnostic as a quality pass.
+
+Candidate `a808257` passed the security audit after the two lockfile patches,
+plus all tests/coverage/build, PostgreSQL acceptance and native runtime. Actual
+Sonar analysis reported 100% new coverage, 0% duplication, A ratings and no
+hotspots; strict zero-issue check correctly rejected five style/accessibility
+issues. The follow-up extracts the UI title, uses semantic output, and names
+repeated SQL fields. No suppressions, threshold changes or behavioral changes.

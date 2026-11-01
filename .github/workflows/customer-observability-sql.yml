@@ -1,0 +1,53 @@
+name: Admin Customer Observability SQL
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/control/admin-customer-observability.sql'
+      - 'database/verification/admin*observability*.sql'
+      - '.github/workflows/customer-observability-sql.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-sql:
+    name: Admin observability disposable SQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-test-only
+          POSTGRES_DB: admin_observability_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Test Admin-only release in isolated PostgreSQL
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: admin_observability_test
+        run: |
+          set -euo pipefail
+          {
+            psql -X -v ON_ERROR_STOP=1 -f database/verification/admin-observability-fixture.sql
+            psql -X -v ON_ERROR_STOP=1 -f database/control/admin-customer-observability.sql
+            BEFORE=$(psql -X -Atc 'select md5(string_agg(id::text || email,chr(10) order by id)) from auth.users')
+            psql -X -v ON_ERROR_STOP=1 -f database/verification/admin-customer-observability.sql
+            AFTER=$(psql -X -Atc 'select md5(string_agg(id::text || email,chr(10) order by id)) from auth.users')
+            test "$BEFORE" = "$AFTER"
+            echo 'Admin observability SQL and existing auth preservation: PASS'
+          } 2>&1 | tee admin-observability-sql.txt
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: admin-observability-sql
+          path: admin-observability-sql.txt
+          retention-days: 14
