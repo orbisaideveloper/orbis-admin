@@ -92,7 +92,7 @@ jobs:
           done
 
           if [ "$DB_READY" != true ]; then
-            echo "ERROR: disposable PostgreSQL did not become ready"
+            echo "ERROR: disposable PostgreSQL did not become ready" >&2
             exit 32
           fi
 
@@ -136,7 +136,7 @@ jobs:
                 echo "POSTGRES_VERSION_CONTRACT=PASS"
                 ;;
               *)
-                echo "ERROR: expected PostgreSQL 17.6.x"
+                echo "ERROR: expected PostgreSQL 17.6.x" >&2
                 exit 31
                 ;;
             esac

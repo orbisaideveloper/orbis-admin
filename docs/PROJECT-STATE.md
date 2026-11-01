@@ -111,3 +111,23 @@ Sonar analysis reported 100% new coverage, 0% duplication, A ratings and no
 hotspots; strict zero-issue check correctly rejected five style/accessibility
 issues. The follow-up extracts the UI title, uses semantic output, and names
 repeated SQL fields. No suppressions, threshold changes or behavioral changes.
+
+## 2026-11-01 — Owner-approved live Admin release
+
+PR #22 merged as `f8fb8e3874b2f6488cceeba5dedf79aac82c4615` after exact-head
+checks. Admin migration `20261101060802_admin_customer_observability` is applied
+only to `aqcwhqdzniruvoqwfsij`. Auth users/accounts/profiles/identities fingerprints
+were unchanged immediately after migration; private RLS and service-only grants
+were verified. An existing live owner session successfully exercised the read RPC.
+
+Render service `srv-dai144uq1p3s73ajc1ag` (My Workspace) is main-based, manual
+auto-deploy OFF; its old name `orbis-admin-staging` does not imply a staging branch.
+Enabling `ORBIS_CUSTOMER_OBSERVABILITY=enabled` triggered deploy
+`dep-dbjdes49v7es739pm790`, LIVE at the merge SHA; /health confirms that revision.
+A real successful identified login was recorded. No Khata writes/deploys occurred.
+
+Main runtime/tests/build/security audit passed, but its strict full-repository
+Sonar check surfaced 11 pre-existing workflow diagnostics requiring stderr.
+A focused follow-up redirects only those error messages (no logic or gate changes).
+Verify its PR/main quality result before declaring all checks green. Product MB,
+premium integration and interactive owner-browser acceptance remain distinct.
