@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'database/control/admin-customer-observability.sql'
+      - 'database/control/admin-customer-dashboard.sql'
       - 'database/verification/admin*observability*.sql'
       - '.github/workflows/customer-observability-sql.yml'
   workflow_dispatch:
@@ -39,6 +40,7 @@ jobs:
           {
             psql -X -v ON_ERROR_STOP=1 -f database/verification/admin-observability-fixture.sql
             psql -X -v ON_ERROR_STOP=1 -f database/control/admin-customer-observability.sql
+            psql -X -v ON_ERROR_STOP=1 -f database/control/admin-customer-dashboard.sql
             BEFORE=$(psql -X -Atc 'select md5(string_agg(id::text || email,chr(10) order by id)) from auth.users')
             psql -X -v ON_ERROR_STOP=1 -f database/verification/admin-customer-observability.sql
             AFTER=$(psql -X -Atc 'select md5(string_agg(id::text || email,chr(10) order by id)) from auth.users')

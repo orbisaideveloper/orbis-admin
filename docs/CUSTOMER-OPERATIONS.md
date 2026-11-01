@@ -76,3 +76,31 @@ cleanup and unchanged original auth fingerprints. It uses synthetic fixtures,
 not live customer data. The cloud host's `networkInterfaces` syscall prevents
 one existing local Fastify listen test; exact-commit GitHub runtime checks must
 supply that final native Linux runtime evidence. Do not weaken tests or thresholds.
+
+## Customer dashboard — 2026-11-01
+
+`/operations?project=orbis-khata` opens a mobile summary, with separate customer,
+successful-login and failed-login cards. `view=customers|success|failure` is UI
+navigation only and is removed before the protected API request. Customer tables
+show serial/name/email/display Orbis ID; details retain immutable IDs. Back/Home
+links are always available, including direct entry. Pagination retains app scope.
+
+Login totals cover all recorded login requests in the last 24 hours, independently
+of the bounded lists (50 events per outcome). Signup is excluded from login
+counts. These are requests, not unique people or concurrent sessions. Telemetry
+is best effort; failures do not prove an identity, and origin does not prove
+product membership. Previous response contracts remain readable during rollout.
+
+For a fresh disposable installation, run `admin-customer-observability.sql` first
+(telemetry table/recorder), then `admin-customer-dashboard.sql` (read RPC). Existing
+live installations apply only the second file. The reviewed Admin-only
+`admin-customer-dashboard.sql` replaces only the read RPC
+and preserves its service-only grants/live-session check. The disposable CI
+verifies upgrade, full-window counts, per-outcome bounds and source preservation.
+Khata's read-verified canonical principal → ledger owner references may be
+registered in Admin as `ledger-owner` references with a durable identity action
+and audit event. This metadata provides visibility only: it does not create a
+product auth binding, merge people, change passwords or change ledger ownership.
+Do not reconcile by email. Additional/new principals require the same verified
+product evidence; a successful login alone is not evidence of a Khata ledger.
+No product database write, accounting migration or Khata deployment is required.

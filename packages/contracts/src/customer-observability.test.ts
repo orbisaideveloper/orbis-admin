@@ -15,3 +15,12 @@ describe('Admin observation contract', () => {
     for (const value of invalid) expect(() => parseCustomerObservability(value)).toThrow('INVALID_OBSERVABILITY')
   })
 })
+
+it('supports the previous read model during rollout and validates full-window login totals',()=>{
+  const legacy={...observationFixture,loginTotals:undefined,activity:[{...event,outcome:'success'},event,{...event,action:'signup'}]}
+  expect(parseCustomerObservability(legacy).loginTotals).toEqual({success:1,failure:1})
+  expect(parseCustomerObservability({...legacy,activity:[]}).loginTotals).toEqual({success:0,failure:0})
+  expect(()=>parseCustomerObservability({...observationFixture,loginTotals:null})).toThrow('INVALID_OBSERVABILITY')
+  expect(()=>parseCustomerObservability({...observationFixture,loginTotals:{success:-1,failure:0}})).toThrow('INVALID_OBSERVABILITY')
+  expect(()=>parseCustomerObservability({...observationFixture,activity:Array(101).fill(event)})).toThrow('INVALID_OBSERVABILITY')
+})

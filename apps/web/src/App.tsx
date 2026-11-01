@@ -363,7 +363,7 @@ const ProjectPage = ({
             <Link
               className="command-card"
               key={area.id}
-              to={`/detail/${area.id}/${project.id}`}
+              to={area.id === 'users' ? '/operations?project=' + encodeURIComponent(project.id) : `/detail/${area.id}/${project.id}`}
             >
               <div className="command-card-topline">
                 <span>{area.eyebrow}</span>

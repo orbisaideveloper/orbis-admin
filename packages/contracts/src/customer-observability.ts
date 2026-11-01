@@ -13,6 +13,7 @@ export type CustomerObservability = {
   version: 'orbis.admin.customers.v1'; checkedAt: string
   total: number; unlinked: number; customers: CustomerUsage[]; nextCursor: string | null
   activity: LoginActivity[]
+  loginTotals: { success: number; failure: number }
 }
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu
 export function observationId(value: string): boolean { return uuid.test(value) }
@@ -64,6 +65,8 @@ export function parseCustomerObservability(value: unknown): CustomerObservabilit
   const customers = list(row.customers, 50).map(customer)
   const nextCursor = nullableId(row.nextCursor)
   if (new Set(customers.map(row => row.authUserId)).size !== customers.length || (nextCursor !== null && nextCursor !== customers.at(-1)?.authUserId)) throw new Error('INVALID_OBSERVABILITY')
+  const events = list(row.activity, 100).map(activity)
+  const totals = row.loginTotals === undefined ? { success: events.filter(event => event.action === 'login' && event.outcome === 'success').length, failure: events.filter(event => event.action === 'login' && event.outcome === 'failure').length } : object(row.loginTotals)
   return { version: row.version, checkedAt: timestamp(row.checkedAt), total: count(row.total), unlinked: count(row.unlinked),
-    customers, nextCursor, activity: list(row.activity, 50).map(activity) }
+    customers, nextCursor, activity: events, loginTotals: { success: count(totals.success), failure: count(totals.failure) } }
 }
