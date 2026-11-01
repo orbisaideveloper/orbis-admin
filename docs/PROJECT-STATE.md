@@ -156,3 +156,14 @@ Owner-login candidate a33ed44 passed 673 tests/100% coverage and runtime CI;
 strict Sonar caught two minor maintainability findings. Follow-up uses Set.has
 for the redirect allowlist and returns the navigation promise without an unused
 async modifier. No permission/authentication behavior or quality policy changed.
+
+## 2026-11-01 — Khata customer dashboard candidate
+
+Owner requested simple per-app customer/login cards and serial/name/email/Orbis
+ID tables. This candidate replaces the long combined observation page with
+summary → list → detail navigation and consistent Back/Home links. Login totals
+are full 24-hour request counts; recent successful/failed lists are independently
+bounded. Dedicated Admin read-RPC upgrade and proof-backed ledger-owner references
+provide visibility without altering product access or accounting data. Exact-head
+quality/runtime/disposable-SQL verification and post-merge live release still
+need completion before this candidate is called delivered.

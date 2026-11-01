@@ -20,6 +20,21 @@ begin
  if snapshot->'activity'->0->>'code'<>'CUSTOMER_AUTH_FAILED' or snapshot::text like '%must-never-store%' then raise exception 'Unsafe telemetry';end if;
  snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,null,'22222222-2222-4222-8222-222222222222');
  if (snapshot->>'total')::int<>1 or jsonb_array_length(snapshot->'activity')<>0 then raise exception 'Unknown failure falsely assigned';end if;
+ -- Product-local ledger ownership references provide visibility, not auth bindings.
+ delete from orbis_customer.product_bindings;
+ insert into orbis_identity.product_references values('44444444-4444-7444-8444-444444444444','orbis-khata','ledger-owner',null);
+ insert into orbis_identity.product_references values('44444444-4444-7444-8444-444444444444','orbis-maya','ledger-owner',null);
+ snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,'orbis-khata');
+ if (snapshot->>'total')::int<>1 then raise exception 'Verified Khata reference not visible';end if;
+ snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,'orbis-maya');
+ if (snapshot->>'total')::int<>0 then raise exception 'Cross-product reference leaked';end if;
+ -- Counts cover all scoped login requests, not only the bounded recent lists.
+ insert into orbis_customer.login_activity(event_id,action,outcome,code,duration_ms,project_id,orbis_identity_id)
+ select gen_random_uuid(),'login','success','OK',25,'orbis-khata','44444444-4444-7444-8444-444444444444' from generate_series(1,60);
+ perform public.orbis_admin_record_login_activity(event||jsonb_build_object('id','88888888-8888-4888-8888-888888888888','action','signup','outcome','success'));
+ snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',null,'orbis-khata');
+ if snapshot->'loginTotals'<>jsonb_build_object('success',60,'failure',1) or jsonb_array_length(snapshot->'activity')<>51 then raise exception 'Full-window totals or per-outcome limits incorrect';end if;
+ delete from orbis_customer.login_activity where outcome='success';
  -- More than one page, without altering any existing customer.
  insert into auth.users(id,email) select ('66666666-6666-4666-8666-'||lpad(n::text,12,'0'))::uuid,'fixture'||n||'@example.test' from generate_series(1,51) n;
  snapshot:=public.orbis_admin_customer_observability('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333');

@@ -55,7 +55,7 @@ begin
   select b.orbis_identity_id,b.project_id,b.environment from orbis_customer.product_bindings b where b.disabled_at is null
   union
   select r.orbis_identity_id,r.project_id,'reference' from orbis_identity.product_references r
-   where r.revoked_at is null and r.local_entity_type='user'
+   where r.revoked_at is null and (r.local_entity_type='user' or (r.project_id='orbis-khata' and r.local_entity_type='ledger-owner'))
  ), customers as (
   select u.id,a.orbis_identity_id,i.display_id,coalesce(p.name,i.display_name,'Orbis customer') as name,u.email,u.phone,
    case when u.banned_until>now() then 'blocked' else coalesce(i.lifecycle,'unlinked') end as status,
@@ -72,10 +72,12 @@ begin
  ), shown as (select * from page order by id limit 50), events as (
   select l.event_id as id,l.occurred_at as at,l.action,l.outcome,l.code,l.duration_ms,l.project_id,l.orbis_identity_id
   from orbis_customer.login_activity l where l.occurred_at>=now()-interval '24 hours'
- ), selected_events as (
+ ), scoped_events as (
   select e.* from events e where (p_project is null or e.project_id=p_project)
    and (p_customer is null or exists(select 1 from orbis_customer.accounts a where a.auth_user_id=p_customer and a.orbis_identity_id=e.orbis_identity_id))
-  order by e.at desc,e.id desc limit 50
+ ), ranked_events as (
+  select e.*,row_number() over(partition by e.outcome order by e.at desc,e.id desc) as outcome_position from scoped_events e
+ ), selected_events as (select * from ranked_events where outcome_position<=50
  )
  select jsonb_build_object('version','orbis.admin.customers.v1','checkedAt',now(),
   'total',(select count(*) from customers),'unlinked',(select count(*) from customers where orbis_identity_id is null),
@@ -83,6 +85,7 @@ begin
    'displayId',s.display_id,'name',s.name,'email',s.email,'phone',nullif(s.phone,''),'status',s.status,
    'registeredAt',s.created_at,'lastSignInAt',s.last_sign_in_at,'products',s.products) order by s.id) from shown s),'[]'::jsonb),
   'nextCursor',case when (select count(*) from page)>50 then (select id from shown order by id desc limit 1) else null end,
+  'loginTotals',jsonb_build_object('success',(select count(*) from scoped_events where action='login' and outcome='success'),'failure',(select count(*) from scoped_events where action='login' and outcome='failure')),
   'activity',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'at',e.at,'action',e.action,'outcome',e.outcome,'code',e.code,
    'projectId',e.project_id,identity_key,e.orbis_identity_id,'contactHint',null,'durationMs',e.duration_ms) order by e.at desc,e.id desc) from selected_events e),'[]'::jsonb)) into result;
  return result;
