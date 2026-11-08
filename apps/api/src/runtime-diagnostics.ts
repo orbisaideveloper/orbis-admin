@@ -8,7 +8,7 @@ export function installRuntimeDiagnostics(
   let firstRequestSeen = false
   let firstHealthSeen = false
 
-  app.addHook('onRequest', async (request) => {
+  app.addHook('onRequest', (request, _reply, done) => {
     if (!firstRequestSeen) {
       firstRequestSeen = true
       sink.info('[orbis-admin-runtime] first_http_request_received')
@@ -17,12 +17,14 @@ export function installRuntimeDiagnostics(
       firstHealthSeen = true
       sink.info('[orbis-admin-runtime] first_health_request_received')
     }
+    done()
   })
 
   // Successful login requests emit no diagnostic record.
-  app.addHook('onResponse', async (request, reply) => {
+  app.addHook('onResponse', (request, reply, done) => {
     if (request.method === 'POST' && request.url.split('?')[0] === '/api/v1/customer/login' && reply.statusCode >= 400) {
       sink.warn('[orbis-admin-runtime] login_http_failure', reply.statusCode)
     }
+    done()
   })
 }
