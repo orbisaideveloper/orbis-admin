@@ -6,6 +6,7 @@ import fastifyStatic from '@fastify/static'
 import { registerMayaWorkspaceRoute } from './routes/maya.js'
 import { registerMayaControls } from './routes/maya-controls.js'
 import Fastify, { type FastifyInstance } from 'fastify'
+import { installRuntimeDiagnostics } from './runtime-diagnostics.js'
 import { resolve } from 'node:path'
 import {
   buildHealthResponse,
@@ -75,6 +76,9 @@ export function buildApp(
     ajv: { customOptions: { removeAdditional: false } },
   })
 
+  // One-time, metadata-only runtime traces. No credentials, IPs, paths or bodies.
+  installRuntimeDiagnostics(app)
+
   app.get<{ Reply: HealthResponse }>(
     '/health',
     () =>
@@ -105,14 +109,20 @@ export async function startServer(
   port: number,
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
-  const app = buildApp(options)
-
-  await app.listen({
-    host: '0.0.0.0',
-    port,
-  })
-
-  return app
+  console.info('[orbis-admin-runtime] startup_begin')
+  try {
+    const app = buildApp(options)
+    await app.listen({
+      host: '0.0.0.0',
+      port,
+    })
+    console.info('[orbis-admin-runtime] listening_ready')
+    return app
+  } catch (error) {
+    // Log stage only, not error messages that could expose configuration.
+    console.error('[orbis-admin-runtime] startup_failed')
+    throw error
+  }
 }
 
 export {
